@@ -1,0 +1,213 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/analysis_results.json",
+    "actual_path": "geninsights-analysis-results.json",
+    "note": "Written to repository root because the .geninsights/ directory could not be auto-created by the agent runtime. Intended location is .geninsights/analysis/analysis_results.json."
+  },
+  "analysis_metadata": {
+    "timestamp": "2026-02-05T15:23:44Z",
+    "repository_name": "github-copilot-test",
+    "total_files_analyzed": 3,
+    "languages_detected": ["python"],
+    "primary_frameworks": ["streamlit"],
+    "skills_used": ["discover-files", "geninsights-logging", "json-output-schemas"]
+  },
+  "summary": {
+    "business_files": 1,
+    "technical_files": 1,
+    "mixed_files": 0,
+    "documentation_files": 1,
+    "languages_detected": ["python"],
+    "primary_frameworks": ["streamlit"]
+  },
+  "files": [
+    {
+      "file_path": "app.py",
+      "file_name": "app.py",
+      "language": "python",
+      "classification": "Business",
+      "category": "Business",
+      "lines_of_code": 50,
+      "summary": "A single-page Streamlit web application that provides a simple four-operation arithmetic calculator (Add, Subtract, Multiply, Divide) via a clean form-based UI.",
+      "description": "app.py is the sole executable entry point of this project. It renders a Streamlit web application titled 'Simple Calculator' with a centred layout. The user enters two floating-point numbers with six-decimal precision, selects one of four arithmetic operations from a dropdown, and submits the form. The application enforces a hard business rule against division by zero, halting execution with a user-friendly error message in that scenario. On successful computation the result is displayed in a success banner, and an expandable 'Computation details' section exposes the raw operands, chosen operation, and computed result as a structured dictionary for transparency and debugging.",
+      "key_responsibilities": [
+        "Rendering the calculator UI (page config, title, caption, two-column number inputs, operation selector, submit button)",
+        "Performing arithmetic calculations for Add, Subtract, Multiply, and Divide operations",
+        "Enforcing the division-by-zero guard rule and halting execution cleanly",
+        "Displaying the result with a human-readable equation string using Unicode mathematical symbols",
+        "Providing an expandable computation details panel for transparency"
+      ],
+      "business_rules": [
+        "Division by zero is not allowed — if the second operand is 0 and the selected operation is Divide, execution stops and an error message 'Division by zero is not allowed.' is shown to the user",
+        "Both number inputs default to 0.0 and accept floating-point values with up to 6 decimal places of precision",
+        "The default operation is 'Add' (index 0 in the selectbox)",
+        "Results are rendered only after explicit form submission (the Calculate button must be pressed)",
+        "The result equation is displayed using Unicode symbols: + for Add, − for Subtract, × for Multiply, ÷ for Divide"
+      ],
+      "technical_libraries": ["streamlit>=1.40.0"],
+      "business_capability": "Arithmetic Computation",
+      "sub_capability": "Basic Calculator Operations",
+      "methods": [
+        {
+          "name": "page_configuration_block",
+          "visibility": "module-level",
+          "return_type": "None",
+          "parameters": [],
+          "purpose": "Configures the Streamlit page with title 'Calculator', a calculator emoji favicon, and centred layout. Also renders the application heading and caption.",
+          "complexity": "low",
+          "dependencies": ["streamlit.set_page_config", "streamlit.title", "streamlit.caption"],
+          "significance": "Establishes the visual identity and layout of the application before any user interaction."
+        },
+        {
+          "name": "calculator_form_block",
+          "visibility": "module-level",
+          "return_type": "None (renders Streamlit widgets, captures submitted flag)",
+          "parameters": [],
+          "purpose": "Defines the st.form named 'calculator_form' containing two column-aligned number inputs, an operation selectbox, and a submit button. Returns the submitted boolean state.",
+          "complexity": "low",
+          "dependencies": ["streamlit.form", "streamlit.columns", "streamlit.number_input", "streamlit.selectbox", "streamlit.form_submit_button"],
+          "significance": "Central input capture mechanism; the form batches all inputs so the calculation only fires on deliberate submission, preventing partial recalculation on each widget change."
+        },
+        {
+          "name": "calculation_and_output_block",
+          "visibility": "module-level",
+          "return_type": "None (renders results to Streamlit UI)",
+          "parameters": ["num1: float — first operand captured from number_input", "num2: float — second operand captured from number_input", "operation: str — one of 'Add', 'Subtract', 'Multiply', 'Divide'", "submitted: bool — True when the form's submit button was clicked"],
+          "purpose": "Executes only when submitted is True. Dispatches to the appropriate arithmetic operation via if/elif/else branching, enforces the division-by-zero rule, sets the result and display symbol, and renders a success message with the equation. Also renders an expander with the structured computation detail dictionary.",
+          "complexity": "low-medium",
+          "dependencies": ["streamlit.error", "streamlit.stop", "streamlit.success", "streamlit.expander", "streamlit.write"],
+          "significance": "Contains all business logic: operation dispatch, error handling, result formatting, and result display. This is the functional core of the application."
+        }
+      ],
+      "method_breakdown": [
+        {
+          "method_name": "page_configuration_block (st.set_page_config + st.title + st.caption)",
+          "summary": "Sets browser tab title to 'Calculator' with a 🧮 icon, uses centred layout, and renders the h1 heading and descriptive caption.",
+          "parameters": [],
+          "returns": "None — side effect: Streamlit page is configured",
+          "dependencies": ["streamlit"],
+          "significance": "First executed code; determines global page appearance before any widget rendering."
+        },
+        {
+          "method_name": "calculator_form_block (st.form context manager)",
+          "summary": "Creates a Streamlit form with two side-by-side number inputs (First number, Second number) and an Operation dropdown. A 'Calculate' submit button finalises the form. The form prevents Streamlit from re-running the calculation on every individual widget change.",
+          "parameters": [
+            "num1: float — First number input, default 0.0, format '%.6f'",
+            "num2: float — Second number input, default 0.0, format '%.6f'",
+            "operation: str — Selected from ('Add', 'Subtract', 'Multiply', 'Divide'), default index 0 (Add)"
+          ],
+          "returns": "submitted: bool — True if the Calculate button was clicked in this run",
+          "dependencies": ["streamlit.form", "streamlit.columns", "streamlit.number_input", "streamlit.selectbox", "streamlit.form_submit_button"],
+          "significance": "Ensures atomicity of input collection — all three inputs (num1, num2, operation) are submitted together, preventing race conditions in the reactive Streamlit execution model."
+        },
+        {
+          "method_name": "calculation_and_output_block (if submitted: ... branching logic)",
+          "summary": "Guarded by the submitted flag. Branches on the operation string to compute result and assign the display symbol. For 'Divide', checks num2 == 0 and calls st.error() + st.stop() to halt execution with a user-facing error. On success, displays result via st.success() with a formatted equation string, then shows an expandable details dictionary.",
+          "parameters": [
+            "num1: float — first operand",
+            "num2: float — second operand (validated against zero for division)",
+            "operation: str — determines which arithmetic branch executes",
+            "submitted: bool — gate condition"
+          ],
+          "returns": "None — side effects: st.error/st.stop on division-by-zero; st.success + st.expander on success",
+          "dependencies": ["streamlit.error", "streamlit.stop", "streamlit.success", "streamlit.expander", "streamlit.write"],
+          "significance": "This is the primary business logic block. It encapsulates all four arithmetic operations, the sole business validation rule (division-by-zero guard), and the dual output modes (error path vs. success path with detail expansion)."
+        }
+      ],
+      "data_model_analysis": {
+        "entity_definitions": "No formal entity or data model classes. Data is handled as bare Python primitives: num1 (float), num2 (float), operation (str), result (float), symbol (str).",
+        "table_mappings": null,
+        "field_constraints": "num1 and num2: floating-point with 6-decimal precision display. num2 must not be 0 when operation is 'Divide'. operation is constrained to one of: 'Add', 'Subtract', 'Multiply', 'Divide'.",
+        "relationship_mappings": null
+      },
+      "validation_rules": {
+        "input_validation_patterns": "Streamlit number_input enforces numeric-only entry. No explicit min/max bounds are set, so any finite float is accepted.",
+        "business_validation_logic": "Division-by-zero check: `if num2 == 0` when operation is 'Divide' — triggers st.error('Division by zero is not allowed.') and st.stop(), aborting the remainder of the script execution.",
+        "constraint_violation_handling": "On constraint violation (division by zero), st.error() renders a red error banner and st.stop() immediately halts Streamlit's script execution. No exception is raised; the stop mechanism is Streamlit-native and user-friendly."
+      },
+      "external_integrations": {
+        "third_party_service_calls": "None. All computation is local in-process Python arithmetic.",
+        "api_consumption_patterns": "None. The application is entirely self-contained with no HTTP calls, database queries, or external service dependencies at runtime.",
+        "error_handling_for_integrations": null
+      },
+      "annotations": [],
+      "dependencies": ["streamlit"]
+    },
+    {
+      "file_path": "requirements.txt",
+      "file_name": "requirements.txt",
+      "language": "pip-requirements",
+      "classification": "Technical",
+      "category": "Technical",
+      "lines_of_code": 1,
+      "summary": "Python package dependency manifest specifying a single runtime dependency: streamlit>=1.40.0.",
+      "description": "requirements.txt is the standard pip dependency file for this project. It declares exactly one dependency: streamlit with a minimum version constraint of 1.40.0. This ensures the application runs with a modern Streamlit release that supports the st.form, st.columns, and related APIs used in app.py. No other runtime, test, or development dependencies are listed.",
+      "key_responsibilities": [
+        "Declaring the minimum Streamlit version required to run app.py",
+        "Enabling repeatable environment setup via `pip install -r requirements.txt`"
+      ],
+      "business_rules": [],
+      "technical_libraries": ["streamlit>=1.40.0"],
+      "business_capability": "Development Infrastructure",
+      "sub_capability": "Dependency Management",
+      "methods": [],
+      "method_breakdown": [],
+      "data_model_analysis": {
+        "entity_definitions": null,
+        "table_mappings": null,
+        "field_constraints": null,
+        "relationship_mappings": null
+      },
+      "validation_rules": {
+        "input_validation_patterns": null,
+        "business_validation_logic": null,
+        "constraint_violation_handling": null
+      },
+      "external_integrations": {
+        "third_party_service_calls": null,
+        "api_consumption_patterns": "pip install resolves the streamlit package from PyPI using the >=1.40.0 version specifier.",
+        "error_handling_for_integrations": null
+      },
+      "annotations": [],
+      "dependencies": ["streamlit>=1.40.0"]
+    },
+    {
+      "file_path": "README.md",
+      "file_name": "README.md",
+      "language": "markdown",
+      "classification": "Documentation",
+      "category": "Technical",
+      "lines_of_code": 17,
+      "summary": "Project README providing concise setup instructions (virtual environment creation, dependency installation) and the command to launch the Streamlit calculator application.",
+      "description": "README.md serves as the primary human-facing documentation for this repository. It describes the project as 'a simple calculator web app built with Streamlit' and provides step-by-step setup instructions: creating and activating a Python virtual environment, installing dependencies via pip, and running the application with `streamlit run app.py`. It notes the default local URL (http://localhost:8501). The file contains no architecture decisions, API documentation, or business-rule descriptions.",
+      "key_responsibilities": [
+        "Onboarding developers and users by explaining how to set up and run the application",
+        "Documenting the launch command and expected local access URL"
+      ],
+      "business_rules": [],
+      "technical_libraries": [],
+      "business_capability": "Developer Experience",
+      "sub_capability": "Project Onboarding",
+      "methods": [],
+      "method_breakdown": [],
+      "data_model_analysis": {
+        "entity_definitions": null,
+        "table_mappings": null,
+        "field_constraints": null,
+        "relationship_mappings": null
+      },
+      "validation_rules": {
+        "input_validation_patterns": null,
+        "business_validation_logic": null,
+        "constraint_violation_handling": null
+      },
+      "external_integrations": {
+        "third_party_service_calls": null,
+        "api_consumption_patterns": null,
+        "error_handling_for_integrations": null
+      },
+      "annotations": [],
+      "dependencies": []
+    }
+  ]
+}

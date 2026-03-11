@@ -1,0 +1,292 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/business_rules.json",
+    "actual_path": "geninsights-business-rules.json",
+    "note": "Written to repository root because the .geninsights/ directory does not exist as a filesystem directory. Intended location is .geninsights/analysis/business_rules.json.",
+    "skills_used": ["discover-files", "geninsights-logging", "json-output-schemas"]
+  },
+  "extraction_metadata": {
+    "timestamp": "2026-02-05T15:31:30Z",
+    "agent": "business-rules-agent",
+    "repository": "github-copilot-test",
+    "source_analysis_file": "geninsights-analysis-results.json",
+    "total_rules_extracted": 10,
+    "total_workflows_identified": 1,
+    "files_analysed": ["app.py"]
+  },
+  "rule_categories": {
+    "validation": 3,
+    "calculation": 4,
+    "decision": 1,
+    "process": 1,
+    "display_formatting": 1
+  },
+  "business_rules": [
+    {
+      "id": "BR-001",
+      "rule_name": "Division by Zero Guard",
+      "rule_type": "Validation",
+      "description": "When the selected operation is Divide and the second operand (num2) equals exactly 0, the calculation is prohibited. An error banner is shown to the user and Streamlit script execution is immediately halted — no result is produced.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "36-38",
+      "conditions": "operation == 'Divide' AND num2 == 0",
+      "actions": "Call st.error('Division by zero is not allowed.') then st.stop() — execution terminates; no result or expander is rendered.",
+      "exceptions": "None. The guard applies universally whenever Divide is selected with a zero denominator, regardless of the numerator value (including 0 ÷ 0).",
+      "priority": "Critical",
+      "stakeholders": ["End Users", "Product Owner"],
+      "related_rules": ["BR-007"],
+      "code_example": "if num2 == 0:\n    st.error('Division by zero is not allowed.')\n    st.stop()"
+    },
+    {
+      "id": "BR-002",
+      "rule_name": "Numeric-Only Operand Input",
+      "rule_type": "Validation",
+      "description": "Both operand input fields enforce numeric-only entry. Non-numeric text cannot be submitted. Streamlit's number_input widget provides this constraint natively via browser and widget-level enforcement — no custom validation code is required.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculator_form_block"],
+      "source_line_range": "12-14",
+      "conditions": "Always — applies to both 'First number' and 'Second number' inputs on every form render.",
+      "actions": "Browser / Streamlit prevents non-numeric characters from being entered; widget returns a Python float.",
+      "exceptions": "None explicitly coded. No min/max bounds are set, so any finite IEEE 754 double-precision float is accepted (including negative numbers, very large numbers, and very small decimals).",
+      "priority": "High",
+      "stakeholders": ["End Users"],
+      "related_rules": ["BR-003"],
+      "code_example": "num1 = st.number_input('First number', value=0.0, format='%.6f')\nnum2 = st.number_input('Second number', value=0.0, format='%.6f')"
+    },
+    {
+      "id": "BR-003",
+      "rule_name": "Operation Enumeration Constraint",
+      "rule_type": "Validation",
+      "description": "The operation field is strictly constrained to exactly four permitted values: 'Add', 'Subtract', 'Multiply', 'Divide'. Free-text entry is not possible. The selectbox widget enforces this enumeration — no arbitrary or custom operation strings can be submitted.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculator_form_block"],
+      "source_line_range": "16-20",
+      "conditions": "Always — the operation dropdown only exposes the four defined choices.",
+      "actions": "User selects one of the four operations; the selection is stored as a Python string for dispatch in the calculation block.",
+      "exceptions": "None. The Streamlit selectbox widget makes it structurally impossible to submit a value outside the defined tuple.",
+      "priority": "High",
+      "stakeholders": ["End Users", "Developers"],
+      "related_rules": ["BR-008"],
+      "code_example": "operation = st.selectbox(\n    'Operation',\n    ('Add', 'Subtract', 'Multiply', 'Divide'),\n    index=0,\n)"
+    },
+    {
+      "id": "BR-004",
+      "rule_name": "Addition Calculation",
+      "rule_type": "Calculation",
+      "description": "When the selected operation is 'Add', the result is computed as the arithmetic sum of num1 and num2 using Python's native float addition operator. The display symbol is set to the standard plus sign '+'.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "25-27",
+      "conditions": "submitted == True AND operation == 'Add'",
+      "actions": "result = num1 + num2; symbol = '+'",
+      "exceptions": "None. Python float overflow (inf) is possible for extremely large operands but is not explicitly handled.",
+      "priority": "Critical",
+      "stakeholders": ["End Users"],
+      "related_rules": ["BR-008", "BR-009", "BR-010"],
+      "formula": "result = num1 + num2",
+      "code_example": "if operation == 'Add':\n    result = num1 + num2\n    symbol = '+'"
+    },
+    {
+      "id": "BR-005",
+      "rule_name": "Subtraction Calculation",
+      "rule_type": "Calculation",
+      "description": "When the selected operation is 'Subtract', the result is computed as num1 minus num2 using Python's native float subtraction operator. The display symbol is set to the ASCII hyphen-minus '-'.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "28-30",
+      "conditions": "submitted == True AND operation == 'Subtract'",
+      "actions": "result = num1 - num2; symbol = '-'",
+      "exceptions": "None. Negative results are valid and displayed normally.",
+      "priority": "Critical",
+      "stakeholders": ["End Users"],
+      "related_rules": ["BR-008", "BR-009", "BR-010"],
+      "formula": "result = num1 - num2",
+      "code_example": "elif operation == 'Subtract':\n    result = num1 - num2\n    symbol = '-'"
+    },
+    {
+      "id": "BR-006",
+      "rule_name": "Multiplication Calculation",
+      "rule_type": "Calculation",
+      "description": "When the selected operation is 'Multiply', the result is computed as the product of num1 and num2 using Python's native float multiplication operator. The display symbol is set to the Unicode multiplication sign '×' (U+00D7).",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "31-33",
+      "conditions": "submitted == True AND operation == 'Multiply'",
+      "actions": "result = num1 * num2; symbol = '×'",
+      "exceptions": "None. Multiplying by zero yields 0.0 legitimately. Overflow to inf is not explicitly handled.",
+      "priority": "Critical",
+      "stakeholders": ["End Users"],
+      "related_rules": ["BR-008", "BR-009", "BR-010"],
+      "formula": "result = num1 * num2",
+      "code_example": "elif operation == 'Multiply':\n    result = num1 * num2\n    symbol = '×'"
+    },
+    {
+      "id": "BR-007",
+      "rule_name": "Division Calculation",
+      "rule_type": "Calculation",
+      "description": "When the selected operation is 'Divide' AND num2 is non-zero, the result is computed as num1 divided by num2 using Python's native float true-division operator. The display symbol is set to the Unicode division sign '÷' (U+00F7). Division only proceeds after the division-by-zero guard (BR-001) has been passed.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "34-39",
+      "conditions": "submitted == True AND operation == 'Divide' AND num2 != 0",
+      "actions": "symbol = '÷'; result = num1 / num2",
+      "exceptions": "Division by zero is fully blocked by BR-001 before this calculation executes.",
+      "priority": "Critical",
+      "stakeholders": ["End Users"],
+      "related_rules": ["BR-001", "BR-008", "BR-009", "BR-010"],
+      "formula": "result = num1 / num2",
+      "code_example": "else:  # Divide\n    symbol = '÷'\n    if num2 == 0:\n        st.error('Division by zero is not allowed.')\n        st.stop()\n    result = num1 / num2"
+    },
+    {
+      "id": "BR-008",
+      "rule_name": "Operation Dispatch Decision",
+      "rule_type": "Decision",
+      "description": "After form submission, the application dispatches to exactly one calculation branch based on the string value of the selected operation. The branching uses an if/elif/else chain that maps each operation name to its corresponding arithmetic formula and display symbol. The 'Divide' branch is the else-fallback because the operation is already constrained to four values by BR-003.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "25-39",
+      "conditions": "submitted == True",
+      "actions": "Evaluate operation string; route to Add (BR-004), Subtract (BR-005), Multiply (BR-006), or Divide (BR-007) branch.",
+      "exceptions": "Because the operation is always one of four enumerated values (BR-003), the else branch implicitly equals 'Divide' — no explicit string comparison is needed.",
+      "priority": "Critical",
+      "stakeholders": ["Developers", "End Users"],
+      "related_rules": ["BR-003", "BR-004", "BR-005", "BR-006", "BR-007"],
+      "code_example": "if operation == 'Add': ...\nelif operation == 'Subtract': ...\nelif operation == 'Multiply': ...\nelse:  # Divide\n    ..."
+    },
+    {
+      "id": "BR-009",
+      "rule_name": "Form-Gate: Calculate Only on Explicit Submission",
+      "rule_type": "Process",
+      "description": "All calculation and result-display logic is gated behind an explicit form submission event. The user must press the 'Calculate' button to trigger any arithmetic. Changing operand values or the operation dropdown alone does not cause a recalculation. This is enforced by Streamlit's st.form mechanism, which batches all widget changes and only re-runs the script's post-form block when the submit button is clicked.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculator_form_block", "calculation_and_output_block"],
+      "source_line_range": "8-24",
+      "conditions": "Always — the if submitted: guard wraps 100% of business calculation and output logic.",
+      "actions": "Before submission: no result is shown. After submission: full calculation and display pipeline executes (BR-008 → BR-004/005/006/007 → BR-010).",
+      "exceptions": "None. st.form() is used explicitly to prevent Streamlit's default immediate-re-run-on-widget-change behaviour.",
+      "priority": "High",
+      "stakeholders": ["End Users", "Product Owner", "UX Designers"],
+      "related_rules": ["BR-004", "BR-005", "BR-006", "BR-007", "BR-008"],
+      "code_example": "with st.form('calculator_form'):\n    # ... inputs ...\n    submitted = st.form_submit_button('Calculate')\n\nif submitted:\n    # All calculation logic here"
+    },
+    {
+      "id": "BR-010",
+      "rule_name": "Result Display with Unicode Mathematical Symbols",
+      "rule_type": "Display/Formatting",
+      "description": "Successfully computed results are displayed in a Streamlit success banner formatted as a human-readable equation: '{num1} {symbol} {num2} = {result}'. Each operation maps to a specific Unicode or ASCII symbol: Add → '+', Subtract → '-', Multiply → '×' (U+00D7), Divide → '÷' (U+00F7). Additionally, a collapsible 'Computation details' expander shows the raw structured data (first_number, second_number, operation, result) as a Python dict.",
+      "business_domain": "Arithmetic Computation",
+      "source_files": ["app.py"],
+      "source_methods": ["calculation_and_output_block"],
+      "source_line_range": "41-49",
+      "conditions": "submitted == True AND no division-by-zero error (BR-001 passed)",
+      "actions": "Render st.success() with formatted equation string; render st.expander() with computation detail dict.",
+      "exceptions": "On division-by-zero (BR-001), st.stop() is called before this display rule executes — no result or expander is shown.",
+      "priority": "Medium",
+      "stakeholders": ["End Users", "UX Designers"],
+      "related_rules": ["BR-001", "BR-004", "BR-005", "BR-006", "BR-007"],
+      "symbol_map": {
+        "Add": "+",
+        "Subtract": "-",
+        "Multiply": "×",
+        "Divide": "÷"
+      },
+      "code_example": "st.success(f'Result: {num1} {symbol} {num2} = {result}')\nwith st.expander('Computation details'):\n    st.write({'first_number': num1, 'second_number': num2, 'operation': operation, 'result': result})"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "WF-001",
+      "workflow_name": "Calculator Computation Workflow",
+      "description": "The end-to-end process a user follows to perform an arithmetic calculation: from opening the app and entering inputs, through form submission, to viewing either a computed result or a division-by-zero error.",
+      "trigger": "User opens the Streamlit application in a web browser (default: http://localhost:8501)",
+      "entry_point": "app.py — module-level execution (Streamlit re-runs the full script on each interaction)",
+      "actors": ["End User", "Streamlit Runtime"],
+      "steps": [
+        {
+          "step": 1,
+          "name": "Page Load & UI Render",
+          "description": "Streamlit renders the page with title 'Simple Calculator', caption, two number inputs (defaulting to 0.000000), an operation dropdown (defaulting to 'Add'), and a 'Calculate' submit button. No result is shown.",
+          "rules_applied": ["BR-002", "BR-003"],
+          "decision_point": false,
+          "next_steps": [2]
+        },
+        {
+          "step": 2,
+          "name": "User Enters Operands",
+          "description": "User types or adjusts the first number (num1) and second number (num2). The widget enforces numeric-only entry. Any finite float is accepted; no min/max bounds are applied. Values display with 6-decimal-place formatting.",
+          "rules_applied": ["BR-002"],
+          "decision_point": false,
+          "next_steps": [3]
+        },
+        {
+          "step": 3,
+          "name": "User Selects Operation",
+          "description": "User selects one of exactly four operations from the dropdown: Add, Subtract, Multiply, or Divide. The default is Add (index 0). Selection is constrained to the enumerated list.",
+          "rules_applied": ["BR-003"],
+          "decision_point": false,
+          "next_steps": [4]
+        },
+        {
+          "step": 4,
+          "name": "User Submits Form",
+          "description": "User clicks the 'Calculate' button. The st.form batches all widget values (num1, num2, operation) and triggers a Streamlit script re-run with submitted = True. No calculation has occurred yet.",
+          "rules_applied": ["BR-009"],
+          "decision_point": false,
+          "next_steps": [5]
+        },
+        {
+          "step": 5,
+          "name": "Division-by-Zero Check",
+          "description": "If the selected operation is Divide, the system immediately checks whether num2 equals 0. This is the sole validation gate in the calculation pipeline.",
+          "rules_applied": ["BR-001"],
+          "decision_point": true,
+          "decision_condition": "operation == 'Divide' AND num2 == 0",
+          "next_steps": {
+            "zero_detected": 6,
+            "safe_to_proceed": 7
+          }
+        },
+        {
+          "step": 6,
+          "name": "Division-by-Zero Error — Workflow Terminates",
+          "description": "A red error banner is displayed: 'Division by zero is not allowed.' Streamlit's st.stop() immediately halts all further script execution. No result, no expander, no success message is shown. The form remains visible so the user can correct their input.",
+          "rules_applied": ["BR-001"],
+          "decision_point": false,
+          "end_state": "Error — Division by Zero",
+          "next_steps": []
+        },
+        {
+          "step": 7,
+          "name": "Arithmetic Calculation",
+          "description": "The correct arithmetic operation is selected via the if/elif/else dispatch chain and executed using Python native float arithmetic. The result float and Unicode display symbol are both assigned.",
+          "rules_applied": ["BR-008", "BR-004", "BR-005", "BR-006", "BR-007"],
+          "decision_point": false,
+          "next_steps": [8]
+        },
+        {
+          "step": 8,
+          "name": "Result Display",
+          "description": "A green success banner shows the formatted equation: '{num1} {symbol} {num2} = {result}'. A collapsible 'Computation details' expander below it exposes the full structured result dict for transparency.",
+          "rules_applied": ["BR-010"],
+          "decision_point": false,
+          "end_state": "Success — Result Displayed",
+          "next_steps": []
+        }
+      ],
+      "end_states": [
+        "Success — Result Displayed (st.success banner + expandable computation details)",
+        "Error — Division by Zero (st.error banner, execution halted via st.stop())"
+      ]
+    }
+  ]
+}

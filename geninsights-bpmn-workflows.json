@@ -1,0 +1,640 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/bpmn_workflows.json",
+    "actual_path": "geninsights-bpmn-workflows.json",
+    "note": "Written to repository root because the .geninsights/ directory structure is managed as a flat file by the agent runtime. Intended location is .geninsights/analysis/bpmn_workflows.json.",
+    "skills_used": ["mermaid-diagrams", "geninsights-logging", "json-output-schemas"]
+  },
+  "generation_metadata": {
+    "timestamp": "2026-02-05T17:00:00Z",
+    "agent": "bpmn-agent",
+    "repository": "github-copilot-test",
+    "source_analysis_files": [
+      "geninsights-analysis-results.json",
+      "geninsights-business-rules.json",
+      "app.py"
+    ],
+    "total_workflows": 3,
+    "total_participants": 2,
+    "total_decision_points": 4,
+    "total_process_steps": 33,
+    "business_rules_referenced": [
+      "BR-001", "BR-002", "BR-003", "BR-004",
+      "BR-005", "BR-006", "BR-007", "BR-008",
+      "BR-009", "BR-010"
+    ]
+  },
+  "participants": [
+    {
+      "id": "P-001",
+      "name": "End User",
+      "type": "Human",
+      "description": "The person who opens the browser, enters operands, selects an operation, submits the form, and reads the result or error message",
+      "appears_in": ["PROC-001"]
+    },
+    {
+      "id": "P-002",
+      "name": "Streamlit Runtime",
+      "type": "System",
+      "description": "The server-side Python/Streamlit execution engine that renders the UI, batches form state, executes arithmetic logic, enforces business rules, and renders output",
+      "technology": "streamlit>=1.40.0",
+      "appears_in": ["PROC-001", "PROC-002", "PROC-003"]
+    }
+  ],
+  "workflows": [
+    {
+      "workflow_id": "PROC-001",
+      "name": "Main Calculator User Journey",
+      "description": "End-to-end process a user follows to perform an arithmetic calculation — from opening the application in a browser, entering operands, selecting an operation, submitting the form, through to viewing either a computed result or a division-by-zero error message. Modelled as a horizontal swimlane diagram with two participant lanes: End User and Streamlit Runtime.",
+      "trigger": "User opens the Streamlit application URL in a web browser (default: http://localhost:8501)",
+      "participants": ["End User", "Streamlit Runtime"],
+      "complexity": "moderate",
+      "source_files": ["app.py"],
+      "business_rules_applied": [
+        "BR-002", "BR-003", "BR-008", "BR-009",
+        "BR-001", "BR-004", "BR-005", "BR-006",
+        "BR-007", "BR-010"
+      ],
+      "diagram_type": "flowchart LR with swimlane subgraphs",
+      "steps": [
+        {
+          "id": "U1",
+          "type": "start",
+          "name": "Open App URL",
+          "description": "User navigates to the Streamlit application in a web browser",
+          "performer": "End User",
+          "next": ["S1"]
+        },
+        {
+          "id": "S1",
+          "type": "serviceTask",
+          "name": "Render Calculator Form",
+          "description": "Streamlit renders the full page: page config (title 'Calculator', 🧮 favicon, centred layout), h1 heading, caption, two column-aligned number_input widgets (default 0.000000), operation selectbox (4 choices, default Add), and 'Calculate' submit button",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-002", "BR-003"],
+          "next": ["U2"]
+        },
+        {
+          "id": "U2",
+          "type": "userTask",
+          "name": "Enter First Number (num1)",
+          "description": "User types or adjusts the first operand. Widget enforces numeric-only entry; any finite IEEE 754 double accepted; displayed with 6 decimal places",
+          "performer": "End User",
+          "business_rules": ["BR-002"],
+          "next": ["U3"]
+        },
+        {
+          "id": "U3",
+          "type": "userTask",
+          "name": "Enter Second Number (num2)",
+          "description": "User types or adjusts the second operand. Same numeric constraints apply. This value is later validated against zero when Divide is selected",
+          "performer": "End User",
+          "business_rules": ["BR-002"],
+          "next": ["U4"]
+        },
+        {
+          "id": "U4",
+          "type": "userTask",
+          "name": "Select Operation",
+          "description": "User picks one of exactly four operations from the selectbox dropdown: Add, Subtract, Multiply, or Divide. Default is Add (index 0). Arbitrary values cannot be entered.",
+          "performer": "End User",
+          "business_rules": ["BR-003"],
+          "next": ["U5"]
+        },
+        {
+          "id": "U5",
+          "type": "userTask",
+          "name": "Click 'Calculate'",
+          "description": "User clicks the st.form_submit_button labelled 'Calculate'. Streamlit batches all widget values (num1, num2, operation) and re-runs the full script with submitted = True",
+          "performer": "End User",
+          "business_rules": ["BR-009"],
+          "next": ["S2"]
+        },
+        {
+          "id": "S2",
+          "type": "gateway",
+          "name": "Form Submitted?",
+          "description": "Exclusive gateway: evaluates the submitted boolean. If False (page load or widget change without submit), loops back to re-render the form. If True, proceeds to operation dispatch.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-009"],
+          "next": {
+            "No — Awaiting Submission": "S1",
+            "Yes — Submitted": "S3"
+          }
+        },
+        {
+          "id": "S3",
+          "type": "serviceTask",
+          "name": "Operation Dispatch",
+          "description": "Evaluates the operation string via if/elif/else chain and routes to the correct arithmetic branch (BR-008). Also triggers the division-by-zero guard check if Divide is selected.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-008"],
+          "next": ["S4"]
+        },
+        {
+          "id": "S4",
+          "type": "gateway",
+          "name": "Divide AND num2 == 0?",
+          "description": "Exclusive gateway: only reached when operation is Divide. Checks if num2 equals exactly 0. This is the sole business validation gate in the computation pipeline.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": {
+            "Yes — BR-001 Triggered": "S5",
+            "No — Safe to Proceed": "S7"
+          }
+        },
+        {
+          "id": "S5",
+          "type": "serviceTask",
+          "name": "st.error — Division by Zero",
+          "description": "Renders a red Streamlit error banner: 'Division by zero is not allowed.' This is a non-exception, user-friendly Streamlit error display.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": ["S6"]
+        },
+        {
+          "id": "S6",
+          "type": "serviceTask",
+          "name": "st.stop — Halt Execution",
+          "description": "Calls Streamlit's st.stop() which immediately raises a StopException internally, halting all further script execution. No result, symbol, st.success, or st.expander is rendered.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": ["U6"]
+        },
+        {
+          "id": "S7",
+          "type": "serviceTask",
+          "name": "Execute Arithmetic",
+          "description": "Executes the correct arithmetic operation using Python native float arithmetic. Assigns result (float) and symbol (str) for the success display. Covers all four operations via the dispatch from S3.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-004", "BR-005", "BR-006", "BR-007"],
+          "next": ["S8"]
+        },
+        {
+          "id": "S8",
+          "type": "serviceTask",
+          "name": "st.success — Result Equation",
+          "description": "Renders a green Streamlit success banner with the formatted equation: 'Result: {num1} {symbol} {num2} = {result}'. Uses Unicode symbols for Multiply (×) and Divide (÷).",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "next": ["S9"]
+        },
+        {
+          "id": "S9",
+          "type": "serviceTask",
+          "name": "st.expander — Computation Details",
+          "description": "Renders a collapsible 'Computation details' expander containing a structured Python dict: {first_number, second_number, operation, result}. Provides transparency into the raw computed values.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "next": ["U7"]
+        },
+        {
+          "id": "U6",
+          "type": "userTask",
+          "name": "Read Error Message",
+          "description": "User reads the red error banner. The form remains fully visible above the error, allowing the user to correct num2 and click Calculate again.",
+          "performer": "End User",
+          "next": ["UE1"]
+        },
+        {
+          "id": "U7",
+          "type": "userTask",
+          "name": "Review Result & Details",
+          "description": "User reads the green result banner showing the full equation. Optionally expands the 'Computation details' panel to inspect raw values.",
+          "performer": "End User",
+          "next": ["UE2"]
+        },
+        {
+          "id": "UE1",
+          "type": "end",
+          "name": "End — Error Terminal",
+          "description": "Process terminates in error state. User may initiate a new calculation cycle by correcting input and resubmitting.",
+          "end_state": "Error — Division by Zero"
+        },
+        {
+          "id": "UE2",
+          "type": "end",
+          "name": "End — Success Terminal",
+          "description": "Process terminates successfully. The result equation and computation details are displayed on screen.",
+          "end_state": "Success — Result Displayed"
+        }
+      ],
+      "flows": [
+        {"from": "U1", "to": "S1"},
+        {"from": "S1", "to": "U2"},
+        {"from": "U2", "to": "U3"},
+        {"from": "U3", "to": "U4"},
+        {"from": "U4", "to": "U5"},
+        {"from": "U5", "to": "S2"},
+        {"from": "S2", "to": "S1", "label": "No — Awaiting Submission"},
+        {"from": "S2", "to": "S3", "label": "Yes — Submitted"},
+        {"from": "S3", "to": "S4"},
+        {"from": "S4", "to": "S5", "label": "Yes — BR-001 Triggered"},
+        {"from": "S4", "to": "S7", "label": "No — Safe to Proceed"},
+        {"from": "S5", "to": "S6"},
+        {"from": "S6", "to": "U6"},
+        {"from": "U6", "to": "UE1"},
+        {"from": "S7", "to": "S8"},
+        {"from": "S8", "to": "S9"},
+        {"from": "S9", "to": "U7"},
+        {"from": "U7", "to": "UE2"}
+      ],
+      "end_states": [
+        {
+          "id": "UE1",
+          "name": "Error — Division by Zero",
+          "description": "st.error banner shown; st.stop() halted execution; form remains visible for retry"
+        },
+        {
+          "id": "UE2",
+          "name": "Success — Result Displayed",
+          "description": "st.success banner with equation + st.expander with computation detail dict rendered"
+        }
+      ]
+    },
+    {
+      "workflow_id": "PROC-002",
+      "name": "Operation Dispatch Workflow",
+      "description": "Detailed subprocess view of the arithmetic dispatch and result rendering that executes after form submission. Shows how the if/elif/else chain (BR-008) routes to each of the four arithmetic operations, how the division-by-zero guard (BR-001) is embedded inside the Divide branch, and how all four success paths converge at the result display node (BR-010).",
+      "trigger": "submitted == True — the st.form_submit_button was clicked",
+      "participants": ["Streamlit Runtime"],
+      "complexity": "moderate",
+      "source_files": ["app.py"],
+      "business_rules_applied": [
+        "BR-008", "BR-001", "BR-004", "BR-005",
+        "BR-006", "BR-007", "BR-010"
+      ],
+      "diagram_type": "flowchart TD with convergence node and classDef styling",
+      "steps": [
+        {
+          "id": "D_START",
+          "type": "start",
+          "name": "Form Submitted",
+          "description": "Entry point: submitted == True, all widget values batched (num1, num2, operation)",
+          "performer": "Streamlit Runtime",
+          "next": ["D_GW1"]
+        },
+        {
+          "id": "D_GW1",
+          "type": "gateway",
+          "name": "Which Operation? (BR-008)",
+          "description": "Four-way exclusive gateway dispatching on the operation string value using if/elif/else. The else branch implicitly covers Divide because operation is always one of the four enumerated values (BR-003).",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-008"],
+          "next": {
+            "operation == 'Add'": "D_ADD",
+            "operation == 'Subtract'": "D_SUB",
+            "operation == 'Multiply'": "D_MUL",
+            "operation == 'Divide' (else)": "D_GW2"
+          }
+        },
+        {
+          "id": "D_ADD",
+          "type": "serviceTask",
+          "name": "Compute Addition",
+          "description": "result = num1 + num2; symbol = '+' (U+002B). Python native float addition.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-004"],
+          "formula": "result = num1 + num2",
+          "symbol": "+",
+          "next": ["D_CONV"]
+        },
+        {
+          "id": "D_SUB",
+          "type": "serviceTask",
+          "name": "Compute Subtraction",
+          "description": "result = num1 - num2; symbol = '-' (U+002D). Python native float subtraction. Negative results are valid.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-005"],
+          "formula": "result = num1 - num2",
+          "symbol": "-",
+          "next": ["D_CONV"]
+        },
+        {
+          "id": "D_MUL",
+          "type": "serviceTask",
+          "name": "Compute Multiplication",
+          "description": "result = num1 * num2; symbol = '×' (U+00D7). Python native float multiplication.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-006"],
+          "formula": "result = num1 * num2",
+          "symbol": "×",
+          "next": ["D_CONV"]
+        },
+        {
+          "id": "D_GW2",
+          "type": "gateway",
+          "name": "num2 == 0? (BR-001)",
+          "description": "Division-by-zero guard exclusive gateway. Checked only when operation is Divide. Uses Python exact equality (IEEE 754): 0.0 == 0 is True.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": {
+            "Yes — Guard Triggered": "D_ERR",
+            "No — Safe to Divide": "D_DIV"
+          }
+        },
+        {
+          "id": "D_ERR",
+          "type": "serviceTask",
+          "name": "st.error — Division by Zero",
+          "description": "Renders red Streamlit error banner: 'Division by zero is not allowed.'",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": ["D_STOP"]
+        },
+        {
+          "id": "D_STOP",
+          "type": "serviceTask",
+          "name": "st.stop — Halt Execution",
+          "description": "Immediately halts all further Streamlit script execution. No result, no symbol, no st.success, no st.expander is rendered.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": ["D_END_ERR"]
+        },
+        {
+          "id": "D_DIV",
+          "type": "serviceTask",
+          "name": "Compute Division",
+          "description": "result = num1 / num2; symbol = '÷' (U+00F7). Only executes when num2 != 0 (after guard passed).",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-007"],
+          "formula": "result = num1 / num2",
+          "symbol": "÷",
+          "next": ["D_CONV"]
+        },
+        {
+          "id": "D_CONV",
+          "type": "serviceTask",
+          "name": "st.success — Result Equation",
+          "description": "Convergence point for all four arithmetic branches. Renders green Streamlit success banner: 'Result: {num1} {symbol} {num2} = {result}'. Unicode symbols used for × and ÷.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "next": ["D_EXP"]
+        },
+        {
+          "id": "D_EXP",
+          "type": "serviceTask",
+          "name": "st.expander — Computation Details",
+          "description": "Renders collapsible 'Computation details' panel containing structured dict: {first_number, second_number, operation, result}.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "next": ["D_END_OK"]
+        },
+        {
+          "id": "D_END_ERR",
+          "type": "end",
+          "name": "End — Error Terminal",
+          "end_state": "Error — Division by Zero"
+        },
+        {
+          "id": "D_END_OK",
+          "type": "end",
+          "name": "End — Success Terminal",
+          "end_state": "Success — Result Displayed"
+        }
+      ],
+      "flows": [
+        {"from": "D_START", "to": "D_GW1"},
+        {"from": "D_GW1", "to": "D_ADD", "label": "operation == 'Add'"},
+        {"from": "D_GW1", "to": "D_SUB", "label": "operation == 'Subtract'"},
+        {"from": "D_GW1", "to": "D_MUL", "label": "operation == 'Multiply'"},
+        {"from": "D_GW1", "to": "D_GW2", "label": "operation == 'Divide' (else)"},
+        {"from": "D_ADD", "to": "D_CONV"},
+        {"from": "D_SUB", "to": "D_CONV"},
+        {"from": "D_MUL", "to": "D_CONV"},
+        {"from": "D_GW2", "to": "D_ERR", "label": "Yes — Guard Triggered"},
+        {"from": "D_GW2", "to": "D_DIV", "label": "No — Safe to Divide"},
+        {"from": "D_ERR", "to": "D_STOP"},
+        {"from": "D_STOP", "to": "D_END_ERR"},
+        {"from": "D_DIV", "to": "D_CONV"},
+        {"from": "D_CONV", "to": "D_EXP"},
+        {"from": "D_EXP", "to": "D_END_OK"}
+      ],
+      "end_states": [
+        {
+          "id": "D_END_ERR",
+          "name": "Error — Division by Zero",
+          "description": "st.error + st.stop — execution halted before any result is produced"
+        },
+        {
+          "id": "D_END_OK",
+          "name": "Success — Result Displayed",
+          "description": "st.success equation banner and st.expander computation details rendered"
+        }
+      ]
+    },
+    {
+      "workflow_id": "PROC-003",
+      "name": "Division-by-Zero Error Handling",
+      "description": "Focused subprocess diagram for the division-by-zero guard (BR-001) within the Divide operation branch. Shows the binary split at the BR-001 gateway: the safe division path (num2 ≠ 0 → BR-007 arithmetic → BR-010 result display) versus the error path (num2 == 0 → st.error → st.stop → execution halted). Uses classDef colour styling to visually distinguish error nodes (red/pink) from success nodes (green). Includes a behavioural edge-case table for the 0/0 scenario.",
+      "trigger": "operation == 'Divide' dispatched — the else branch of the BR-008 gateway is entered",
+      "participants": ["Streamlit Runtime"],
+      "complexity": "simple",
+      "source_files": ["app.py"],
+      "business_rules_applied": ["BR-001", "BR-007", "BR-010"],
+      "diagram_type": "flowchart TD with subgraph subprocess boxes and classDef styling",
+      "steps": [
+        {
+          "id": "E_START",
+          "type": "start",
+          "name": "Divide Operation Dispatched",
+          "description": "Entry: BR-008 else branch reached; operation is confirmed as Divide",
+          "performer": "Streamlit Runtime",
+          "next": ["E_GW"]
+        },
+        {
+          "id": "E_GW",
+          "type": "gateway",
+          "name": "num2 == 0? (BR-001 Guard)",
+          "description": "Critical exclusive gateway. Evaluates Python expression: num2 == 0. Uses IEEE 754 float equality: both 0.0 and -0.0 evaluate as zero. Applies universally regardless of num1 value.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "next": {
+            "No — num2 ≠ 0 (Safe Path)": "E_DIV",
+            "Yes — num2 == 0 (Error Path)": "E_ERR"
+          }
+        },
+        {
+          "id": "E_DIV",
+          "type": "serviceTask",
+          "name": "Execute Division",
+          "description": "result = num1 / num2 using Python's true-division operator. symbol = '÷' (U+00F7) assigned for display. Both result and symbol are now available for the success display.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-007"],
+          "subprocess": "safePath",
+          "formula": "result = num1 / num2",
+          "next": ["E_SUC"]
+        },
+        {
+          "id": "E_SUC",
+          "type": "serviceTask",
+          "name": "st.success — Result Equation",
+          "description": "Renders green banner: 'Result: {num1} ÷ {num2} = {result}' with Unicode division symbol.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "subprocess": "safePath",
+          "next": ["E_EXP"]
+        },
+        {
+          "id": "E_EXP",
+          "type": "serviceTask",
+          "name": "st.expander — Computation Details",
+          "description": "Renders collapsible 'Computation details' dict panel.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-010"],
+          "subprocess": "safePath",
+          "next": ["E_END_OK"]
+        },
+        {
+          "id": "E_ERR",
+          "type": "serviceTask",
+          "name": "st.error — Division by Zero Message",
+          "description": "Renders Streamlit red error banner: 'Division by zero is not allowed.' No Python exception is raised; this is a user-facing UI message via Streamlit's error component.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "subprocess": "errorPath",
+          "next": ["E_STOP"]
+        },
+        {
+          "id": "E_STOP",
+          "type": "serviceTask",
+          "name": "st.stop — Halt Script Execution",
+          "description": "Calls st.stop() which internally raises a StopException. All subsequent Python statements in app.py are skipped. result and symbol are never assigned. st.success and st.expander are never rendered.",
+          "performer": "Streamlit Runtime",
+          "business_rules": ["BR-001"],
+          "subprocess": "errorPath",
+          "next": ["E_FORM"]
+        },
+        {
+          "id": "E_FORM",
+          "type": "serviceTask",
+          "name": "Form Remains Visible for Retry",
+          "description": "Because st.stop() only halts execution after the form was already rendered in this Streamlit run, the calculator form remains visible above the error banner. The user can modify num2 and click Calculate again.",
+          "performer": "Streamlit Runtime",
+          "subprocess": "errorPath",
+          "next": ["E_END_ERR"]
+        },
+        {
+          "id": "E_END_OK",
+          "type": "end",
+          "name": "End — Division Success",
+          "end_state": "Success — Division result and computation details displayed"
+        },
+        {
+          "id": "E_END_ERR",
+          "type": "end",
+          "name": "End — Execution Halted",
+          "end_state": "Error — Division by Zero; st.stop() halted script; form visible for retry"
+        }
+      ],
+      "flows": [
+        {"from": "E_START", "to": "E_GW"},
+        {"from": "E_GW", "to": "E_DIV", "label": "No — num2 ≠ 0 (Safe Path)"},
+        {"from": "E_GW", "to": "E_ERR", "label": "Yes — num2 == 0 (Error Path)"},
+        {"from": "E_DIV", "to": "E_SUC"},
+        {"from": "E_SUC", "to": "E_EXP"},
+        {"from": "E_EXP", "to": "E_END_OK"},
+        {"from": "E_ERR", "to": "E_STOP"},
+        {"from": "E_STOP", "to": "E_FORM"},
+        {"from": "E_FORM", "to": "E_END_ERR"}
+      ],
+      "subprocesses": [
+        {
+          "id": "safePath",
+          "name": "Safe Division Path",
+          "label": "✅ Safe Division Path — BR-007",
+          "steps": ["E_DIV", "E_SUC", "E_EXP"]
+        },
+        {
+          "id": "errorPath",
+          "name": "Error Handling Path",
+          "label": "❌ Error Handling Path — BR-001",
+          "steps": ["E_ERR", "E_STOP", "E_FORM"]
+        }
+      ],
+      "end_states": [
+        {
+          "id": "E_END_OK",
+          "name": "Division Success",
+          "description": "st.success equation + st.expander details rendered for the division result"
+        },
+        {
+          "id": "E_END_ERR",
+          "name": "Execution Halted",
+          "description": "st.error banner shown; st.stop() halted execution; form remains visible"
+        }
+      ],
+      "edge_cases": [
+        {
+          "scenario": "Normal division",
+          "num1": 10.0,
+          "num2": 2.0,
+          "outcome": "Success",
+          "result": 5.0
+        },
+        {
+          "scenario": "Division of zero by non-zero",
+          "num1": 0.0,
+          "num2": 5.0,
+          "outcome": "Success",
+          "result": 0.0
+        },
+        {
+          "scenario": "Division by zero",
+          "num1": 10.0,
+          "num2": 0.0,
+          "outcome": "Error — BR-001 triggered",
+          "result": null
+        },
+        {
+          "scenario": "Zero divided by zero (0 ÷ 0)",
+          "num1": 0.0,
+          "num2": 0.0,
+          "outcome": "Error — BR-001 triggered (numerator value irrelevant)",
+          "result": null
+        },
+        {
+          "scenario": "Very large number divided by zero",
+          "num1": 1e308,
+          "num2": 0.0,
+          "outcome": "Error — BR-001 triggered",
+          "result": null
+        },
+        {
+          "scenario": "Division by very small non-zero number",
+          "num1": 1.0,
+          "num2": 0.000001,
+          "outcome": "Success — guard passes (any non-zero num2 is accepted)",
+          "result": 1000000.0
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_workflows": 3,
+    "workflows_by_complexity": {
+      "simple": 1,
+      "moderate": 2,
+      "complex": 0
+    },
+    "total_decision_points": 4,
+    "total_parallel_flows": 0,
+    "total_participants": 2,
+    "total_process_steps": 33,
+    "total_end_states": 6,
+    "unique_end_state_types": {
+      "success": 3,
+      "error": 3
+    },
+    "business_rules_coverage": {
+      "total_rules_in_codebase": 10,
+      "rules_represented_in_diagrams": 10,
+      "coverage_percentage": 100
+    },
+    "diagram_types_used": [
+      "flowchart LR with swimlane subgraphs (PROC-001)",
+      "flowchart TD with convergence node and classDef styling (PROC-002)",
+      "flowchart TD with subprocess subgraphs and classDef styling (PROC-003)"
+    ]
+  }
+}

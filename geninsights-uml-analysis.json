@@ -1,0 +1,348 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/uml_analysis.json",
+    "actual_path": "geninsights-uml-analysis.json",
+    "note": "Written to repository root because the .geninsights/ directory does not exist as a physical filesystem directory. Intended location is .geninsights/analysis/uml_analysis.json.",
+    "skills_used": ["mermaid-diagrams", "geninsights-logging", "json-output-schemas"]
+  },
+  "analysis_metadata": {
+    "timestamp": "2026-02-05T16:05:00Z",
+    "agent": "uml-agent",
+    "repository": "github-copilot-test",
+    "source_analysis_files": [
+      "geninsights-analysis-results.json",
+      "geninsights-business-rules.json"
+    ],
+    "source_code_files": ["app.py"],
+    "diagrams_generated": 4,
+    "diagram_format": "Mermaid (embedded in Markdown)"
+  },
+  "class_diagrams": [
+    {
+      "id": "CD-001",
+      "name": "Module & Data Model",
+      "scope": "Full system — module structure, data records, operation enumeration, framework dependency",
+      "description": "Depicts the logical structure of app.py as a single CalculatorApp module entity containing the three functional blocks as operations. CalculatorInput and CalculationResult represent the primitive data variables flowing through the script. The Operation enumeration constrains the four arithmetic choices. StreamlitRuntime represents the full set of Streamlit API calls the module depends on.",
+      "classes_included": [
+        "CalculatorApp",
+        "CalculatorInput",
+        "CalculationResult",
+        "Operation",
+        "StreamlitRuntime"
+      ],
+      "stereotypes": {
+        "CalculatorApp": "module",
+        "CalculatorInput": "dataclass",
+        "CalculationResult": "dataclass",
+        "Operation": "enumeration",
+        "StreamlitRuntime": "framework"
+      },
+      "class_details": {
+        "CalculatorApp": {
+          "note": "Logical representation of the app.py module as a whole; not a formal Python class",
+          "operations": [
+            "page_configuration_block() None",
+            "calculator_form_block() bool",
+            "calculation_and_output_block() None"
+          ],
+          "source_lines": "1-49"
+        },
+        "CalculatorInput": {
+          "note": "Logical data record representing the primitive variables captured from the st.form widget group",
+          "attributes": [
+            "num1 : float",
+            "num2 : float",
+            "operation : str",
+            "submitted : bool"
+          ],
+          "source_lines": "8-23"
+        },
+        "CalculationResult": {
+          "note": "Logical data record representing the primitive variables computed and displayed in the output block",
+          "attributes": [
+            "first_number : float",
+            "second_number : float",
+            "operation : str",
+            "symbol : str",
+            "result : float"
+          ],
+          "source_lines": "24-49"
+        },
+        "Operation": {
+          "note": "Logical enumeration of the four values enforced by the st.selectbox widget (BR-003)",
+          "values": ["Add", "Subtract", "Multiply", "Divide"],
+          "source_lines": "16-20"
+        },
+        "StreamlitRuntime": {
+          "note": "External framework dependency; all 13 Streamlit API calls used by app.py are represented as operations",
+          "operations": [
+            "set_page_config(page_title, page_icon, layout) None",
+            "title(text) None",
+            "caption(text) None",
+            "form(key) ContextManager",
+            "columns(spec) List",
+            "number_input(label, value, format) float",
+            "selectbox(label, options, index) str",
+            "form_submit_button(label) bool",
+            "error(message) None",
+            "stop() None",
+            "success(message) None",
+            "expander(label) ContextManager",
+            "write(data) None"
+          ]
+        }
+      },
+      "relationships": [
+        {
+          "from": "CalculatorApp",
+          "to": "StreamlitRuntime",
+          "type": "dependency",
+          "mermaid_symbol": "..>",
+          "label": "uses",
+          "description": "CalculatorApp delegates all UI rendering, input capture, error display, and execution control to StreamlitRuntime"
+        },
+        {
+          "from": "CalculatorApp",
+          "to": "CalculatorInput",
+          "type": "association",
+          "mermaid_symbol": "-->",
+          "label": "captures via form",
+          "description": "calculator_form_block() populates the CalculatorInput data record from st.form widgets"
+        },
+        {
+          "from": "CalculatorApp",
+          "to": "CalculationResult",
+          "type": "association",
+          "mermaid_symbol": "-->",
+          "label": "produces on submit",
+          "description": "calculation_and_output_block() populates the CalculationResult data record when submitted=True"
+        },
+        {
+          "from": "CalculatorInput",
+          "to": "Operation",
+          "type": "association",
+          "mermaid_symbol": "-->",
+          "label": "constrained by",
+          "description": "The operation field of CalculatorInput is constrained to Operation enum values by BR-003 via st.selectbox"
+        },
+        {
+          "from": "CalculatorInput",
+          "to": "CalculationResult",
+          "type": "association",
+          "mermaid_symbol": "-->",
+          "label": "drives computation",
+          "description": "num1, num2, and operation from CalculatorInput determine result and symbol in CalculationResult"
+        }
+      ]
+    }
+  ],
+  "sequence_diagrams": [
+    {
+      "id": "SD-001",
+      "name": "Successful Calculation Flow (Happy Path)",
+      "workflow": "WF-001 steps 1-4 then 7-8 — full happy-path calculator interaction",
+      "description": "Traces the complete execution path for a valid calculation. Illustrates Streamlit's reactive re-run model (script executes twice: once on page load with submitted=False, once on form submit with submitted=True). Shows the st.form batching behaviour (BR-009) and a sample Multiply operation (BR-006, BR-010).",
+      "example_input": {
+        "num1": 10.0,
+        "num2": 5.0,
+        "operation": "Multiply",
+        "expected_result": 50.0,
+        "expected_symbol": "x"
+      },
+      "participants": [
+        "User",
+        "Streamlit Runtime",
+        "app.py",
+        "Form Block",
+        "Calculation Block"
+      ],
+      "phases": [
+        {
+          "phase": 1,
+          "name": "Initial Page Load",
+          "description": "Streamlit executes the script with submitted=False. All widgets render with defaults. No calculation block executes.",
+          "submitted_state": false,
+          "source_lines": "1-23"
+        },
+        {
+          "phase": 2,
+          "name": "User Input and Form Submission",
+          "description": "User enters operands and selects Multiply, then clicks Calculate. Streamlit re-runs the script with submitted=True.",
+          "submitted_state": true,
+          "source_lines": "24"
+        },
+        {
+          "phase": 3,
+          "name": "Operation Dispatch and Result Display",
+          "description": "BR-008 dispatches to the Multiply branch (BR-006). result=50.0, symbol=x. st.success() and st.expander() render the output (BR-010).",
+          "submitted_state": true,
+          "source_lines": "25-49"
+        }
+      ],
+      "business_rules_illustrated": [
+        "BR-002", "BR-003", "BR-008", "BR-006", "BR-009", "BR-010"
+      ]
+    },
+    {
+      "id": "SD-002",
+      "name": "Division-by-Zero Error Flow (Error Path)",
+      "workflow": "WF-001 steps 1-4 then 5-6 — BR-001 guard triggers st.error + st.stop",
+      "description": "Traces the execution path when a user selects Divide with a zero denominator. After submission the else branch handles Divide; BR-001 immediately checks num2==0 and calls st.error() then st.stop(), halting all further script execution. No result, no expander, and no st.success() is ever reached.",
+      "example_input": {
+        "num1": 7.0,
+        "num2": 0.0,
+        "operation": "Divide",
+        "expected_result": null,
+        "expected_symbol": "div"
+      },
+      "participants": [
+        "User",
+        "Streamlit Runtime",
+        "app.py",
+        "Calculation Block",
+        "BR-001 Division Guard"
+      ],
+      "key_events": [
+        {
+          "event": "BR-001 guard check",
+          "description": "num2 == 0 evaluates to True for Divide operation",
+          "source_line": 36
+        },
+        {
+          "event": "st.error() call",
+          "description": "Red error banner rendered: Division by zero is not allowed.",
+          "source_line": 37
+        },
+        {
+          "event": "st.stop() call",
+          "description": "Streamlit halts all further script execution — no result or expander is rendered",
+          "source_line": 38
+        }
+      ],
+      "business_rules_illustrated": [
+        "BR-001", "BR-008", "BR-009"
+      ]
+    }
+  ],
+  "use_case_diagrams": [
+    {
+      "id": "UC-001",
+      "name": "System Use Cases",
+      "scope": "Full system — all user-facing interactions",
+      "description": "Maps two system actors (End User and Streamlit Runtime) to all eight use cases identified from the source code. Conditional post-submission branching from WF-001 is shown via labelled edges (success path vs BR-001 triggered path).",
+      "actors": [
+        {
+          "name": "End User",
+          "description": "The person operating the calculator in a web browser",
+          "interactions": ["Open Calculator App", "Enter First Operand", "Enter Second Operand", "Select Arithmetic Operation", "Submit Calculation"]
+        },
+        {
+          "name": "Streamlit Runtime",
+          "description": "The web framework serving and executing app.py; enforces system-level widget constraints",
+          "interactions": ["Open Calculator App", "Enter First Operand", "Enter Second Operand", "Select Arithmetic Operation", "Submit Calculation", "View Calculation Result", "Expand Computation Details", "Receive Division-by-Zero Error"]
+        }
+      ],
+      "use_cases": [
+        {
+          "name": "Open Calculator App",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": [],
+          "outcome": "Calculator form displayed with default values (0.0, 0.0, Add)"
+        },
+        {
+          "name": "Enter First Operand",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-002"],
+          "outcome": "Numeric float captured in num1 variable"
+        },
+        {
+          "name": "Enter Second Operand",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-002"],
+          "outcome": "Numeric float captured in num2 variable"
+        },
+        {
+          "name": "Select Arithmetic Operation",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-003"],
+          "outcome": "One of Add/Subtract/Multiply/Divide captured in operation variable"
+        },
+        {
+          "name": "Submit Calculation",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-009"],
+          "outcome": "Script re-executes with submitted=True; branches to success or error path"
+        },
+        {
+          "name": "View Calculation Result",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-004", "BR-005", "BR-006", "BR-007", "BR-010"],
+          "outcome": "Green st.success banner shows formatted equation (num1 symbol num2 = result)"
+        },
+        {
+          "name": "Expand Computation Details",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-010"],
+          "outcome": "Collapsible st.expander panel reveals structured dict: first_number, second_number, operation, result"
+        },
+        {
+          "name": "Receive Division-by-Zero Error",
+          "actors": ["End User", "Streamlit Runtime"],
+          "business_rules": ["BR-001"],
+          "outcome": "Red st.error banner displayed; script halted via st.stop(); no result shown"
+        }
+      ],
+      "conditional_flows": [
+        {
+          "trigger": "Submit Calculation",
+          "condition": "operation != Divide OR num2 != 0",
+          "label": "success path",
+          "leads_to": "View Calculation Result"
+        },
+        {
+          "trigger": "Submit Calculation",
+          "condition": "operation == Divide AND num2 == 0",
+          "label": "BR-001 triggered",
+          "leads_to": "Receive Division-by-Zero Error"
+        },
+        {
+          "trigger": "View Calculation Result",
+          "condition": "User clicks Computation details expander",
+          "label": "optional",
+          "leads_to": "Expand Computation Details"
+        }
+      ]
+    }
+  ],
+  "class_summary": {
+    "total_classes": 5,
+    "formal_python_classes": 0,
+    "logical_model_constructs": 5,
+    "interfaces": 0,
+    "abstract_classes": 0,
+    "enumerations": 1,
+    "external_framework_classes": 1,
+    "module_level_constructs": 1,
+    "data_record_constructs": 2
+  },
+  "relationship_summary": {
+    "total_relationships": 5,
+    "dependency": 1,
+    "association": 4,
+    "composition": 0,
+    "aggregation": 0,
+    "inheritance": 0,
+    "implementation": 0
+  },
+  "diagram_summary": {
+    "total_diagrams": 4,
+    "class_diagrams": 1,
+    "sequence_diagrams": 2,
+    "use_case_diagrams": 1,
+    "participants_across_sequence_diagrams": 9,
+    "actors_across_use_case_diagrams": 2,
+    "use_cases_total": 8,
+    "business_rules_illustrated": ["BR-001", "BR-002", "BR-003", "BR-004", "BR-005", "BR-006", "BR-007", "BR-008", "BR-009", "BR-010"],
+    "workflows_illustrated": ["WF-001"]
+  }
+}

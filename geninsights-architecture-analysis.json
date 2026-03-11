@@ -1,0 +1,438 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/architecture_analysis.json",
+    "actual_path": "geninsights-architecture-analysis.json",
+    "note": "Written to repository root because the .geninsights/ directory cannot be auto-created by the agent runtime. Intended location is .geninsights/analysis/architecture_analysis.json.",
+    "generated_by": "architecture-agent",
+    "skills_used": ["mermaid-diagrams", "geninsights-logging", "json-output-schemas"]
+  },
+  "analysis_metadata": {
+    "timestamp": "2026-02-05T18:00:00Z",
+    "repository": "github-copilot-test",
+    "architecture_style": "Single-File Procedural Monolith",
+    "architecture_style_detail": "A single 50-line Python script executed by the Streamlit reactive script-runner model. No classes, no modules, no persistence layer, no external integrations at runtime.",
+    "primary_language": "Python 3.x",
+    "primary_framework": "Streamlit >= 1.40.0",
+    "source_files_analysed": ["app.py", "requirements.txt", "README.md"],
+    "prior_analysis_consumed": [
+      "geninsights-analysis-results.json",
+      "geninsights-business-rules.json",
+      "geninsights-code-assessment.json"
+    ]
+  },
+  "layers": [
+    {
+      "name": "Presentation",
+      "description": "Browser-rendered Streamlit UI — HTML/CSS/JS delivered by Tornado and rendered by the browser's Streamlit React frontend. Includes page configuration, form widgets, and result display.",
+      "components": [
+        "Page Configuration Block",
+        "Calculator Form Block",
+        "Result Output Block",
+        "Streamlit React Frontend (browser-side)"
+      ],
+      "technologies": ["Streamlit st.form", "st.number_input", "st.selectbox", "st.form_submit_button", "st.success", "st.error", "st.expander", "st.write"],
+      "source_lines": "1-6 (Page Config), 8-22 (Form), 41-49 (Output)",
+      "responsibilities": [
+        "Render browser tab title, favicon, heading, caption",
+        "Collect two floating-point operands and arithmetic operation from user",
+        "Batch inputs via st.form to prevent partial-input recalculation",
+        "Render success result banner with equation string",
+        "Render expandable computation detail dictionary",
+        "Render error banner on division-by-zero"
+      ],
+      "dependencies": ["Business Logic Layer", "Streamlit Framework"]
+    },
+    {
+      "name": "Business Logic",
+      "description": "Arithmetic operation dispatch and business rule enforcement. Fully procedural if/elif/else branching. Embedded within app.py lines 24-39, immediately below the form.",
+      "components": [
+        "Calculation Engine (Operation Dispatcher)",
+        "Division-by-Zero Guard (BR-001)"
+      ],
+      "technologies": ["Python built-in arithmetic operators (+, -, *, /)", "Python if/elif/else"],
+      "source_lines": "24-39",
+      "responsibilities": [
+        "Dispatch arithmetic computation based on selected operation string",
+        "Enforce BR-001: halt execution if num2 == 0 and operation == Divide",
+        "Compute result: num1 + num2, num1 - num2, num1 * num2, num1 / num2",
+        "Assign Unicode display symbol: +, \u2212, \u00d7, \u00f7"
+      ],
+      "dependencies": ["Python Runtime (arithmetic operators)"]
+    },
+    {
+      "name": "Framework Infrastructure",
+      "description": "Streamlit framework internals that host and execute app.py. Not part of application source but essential architectural components.",
+      "components": [
+        "Streamlit Script Runner",
+        "Tornado HTTP Server",
+        "Session State Manager"
+      ],
+      "technologies": ["Streamlit >= 1.40.0", "Tornado async HTTP server"],
+      "source_lines": "External (streamlit package)",
+      "responsibilities": [
+        "Re-execute app.py from top-to-bottom on every browser interaction",
+        "Serve HTTP GET and WebSocket connections on localhost:8501",
+        "Persist widget values (num1, num2, operation, submitted) across script reruns",
+        "Transmit UI delta frames to browser"
+      ],
+      "dependencies": ["Python 3.x runtime", "Host OS"]
+    }
+  ],
+  "components": [
+    {
+      "id": "COMP-001",
+      "name": "Page Configuration Block",
+      "layer": "Presentation",
+      "type": "UI Setup",
+      "source_file": "app.py",
+      "source_lines": "1-6",
+      "responsibilities": [
+        "Set browser tab title to 'Calculator'",
+        "Set page favicon to calculator emoji (🧮)",
+        "Set page layout to 'centered'",
+        "Render h1 heading 'Simple Calculator'",
+        "Render caption subtitle"
+      ],
+      "streamlit_apis": ["st.set_page_config", "st.title", "st.caption"],
+      "dependencies": ["Streamlit Framework"],
+      "dependents": [],
+      "data_inputs": [],
+      "data_outputs": []
+    },
+    {
+      "id": "COMP-002",
+      "name": "Calculator Form Block",
+      "layer": "Presentation",
+      "type": "UI Input Collection",
+      "source_file": "app.py",
+      "source_lines": "8-22",
+      "responsibilities": [
+        "Render a Streamlit form named 'calculator_form'",
+        "Collect num1: float (first operand, default 0.0, 6 decimal places)",
+        "Collect num2: float (second operand, default 0.0, 6 decimal places)",
+        "Collect operation: str (one of Add, Subtract, Multiply, Divide; default Add)",
+        "Batch all inputs and gate calculation until Calculate button is pressed (BR-009)",
+        "Return submitted: bool flag"
+      ],
+      "streamlit_apis": ["st.form", "st.columns", "st.number_input", "st.selectbox", "st.form_submit_button"],
+      "dependencies": ["Streamlit Framework", "Streamlit Session State Manager"],
+      "dependents": ["Calculation Engine Block"],
+      "data_inputs": [],
+      "data_outputs": [
+        {"name": "num1", "type": "float", "description": "First arithmetic operand"},
+        {"name": "num2", "type": "float", "description": "Second arithmetic operand"},
+        {"name": "operation", "type": "str", "description": "Selected operation: Add | Subtract | Multiply | Divide"},
+        {"name": "submitted", "type": "bool", "description": "True when Calculate button was clicked in this script run"}
+      ],
+      "business_rules_enforced": ["BR-002", "BR-003", "BR-009"]
+    },
+    {
+      "id": "COMP-003",
+      "name": "Calculation Engine",
+      "layer": "Business Logic",
+      "type": "Operation Dispatcher",
+      "source_file": "app.py",
+      "source_lines": "24-39",
+      "responsibilities": [
+        "Execute only when submitted == True",
+        "Dispatch to arithmetic operation based on operation string (BR-008)",
+        "Compute result via Python built-in operators",
+        "Assign Unicode symbol for result display (BR-010)",
+        "Delegate to Division-by-Zero Guard before performing Divide"
+      ],
+      "streamlit_apis": [],
+      "python_operators": ["+", "-", "*", "/"],
+      "dependencies": ["Division-by-Zero Guard", "Python Built-in Arithmetic"],
+      "dependents": ["Result Output Block"],
+      "data_inputs": [
+        {"name": "num1", "type": "float", "source": "Calculator Form Block"},
+        {"name": "num2", "type": "float", "source": "Calculator Form Block"},
+        {"name": "operation", "type": "str", "source": "Calculator Form Block"},
+        {"name": "submitted", "type": "bool", "source": "Calculator Form Block"}
+      ],
+      "data_outputs": [
+        {"name": "result", "type": "float", "description": "Computed arithmetic result"},
+        {"name": "symbol", "type": "str", "description": "Unicode operator symbol: +, \u2212, \u00d7, or \u00f7"}
+      ],
+      "business_rules_enforced": ["BR-004", "BR-005", "BR-006", "BR-007", "BR-008", "BR-010"]
+    },
+    {
+      "id": "COMP-004",
+      "name": "Division-by-Zero Guard",
+      "layer": "Business Logic",
+      "type": "Validation Guard / Early Exit",
+      "source_file": "app.py",
+      "source_lines": "36-38",
+      "responsibilities": [
+        "Check if num2 == 0 when operation is Divide",
+        "If violation: render st.error with user-friendly message",
+        "If violation: call st.stop() to immediately halt script execution",
+        "If no violation: allow execution to proceed to division computation"
+      ],
+      "streamlit_apis": ["st.error", "st.stop"],
+      "dependencies": ["Streamlit Framework"],
+      "dependents": ["Calculation Engine"],
+      "data_inputs": [
+        {"name": "num2", "type": "float", "source": "Calculator Form Block"},
+        {"name": "operation", "type": "str", "source": "Calculator Form Block"}
+      ],
+      "data_outputs": [],
+      "business_rules_enforced": ["BR-001"],
+      "architectural_note": "Uses Streamlit's st.stop() as an early-exit mechanism — analogous to a guard clause return in a function. Prevents any result from being computed or displayed on constraint violation."
+    },
+    {
+      "id": "COMP-005",
+      "name": "Result Output Block",
+      "layer": "Presentation",
+      "type": "UI Output Rendering",
+      "source_file": "app.py",
+      "source_lines": "41-49",
+      "responsibilities": [
+        "Render st.success banner with formatted equation string: '{num1} {symbol} {num2} = {result}'",
+        "Render st.expander labeled 'Computation details'",
+        "Inside expander: render st.write with detail dictionary (first_number, second_number, operation, result)"
+      ],
+      "streamlit_apis": ["st.success", "st.expander", "st.write"],
+      "dependencies": ["Streamlit Framework"],
+      "dependents": [],
+      "data_inputs": [
+        {"name": "num1", "type": "float", "source": "Calculator Form Block"},
+        {"name": "num2", "type": "float", "source": "Calculator Form Block"},
+        {"name": "operation", "type": "str", "source": "Calculator Form Block"},
+        {"name": "result", "type": "float", "source": "Calculation Engine"},
+        {"name": "symbol", "type": "str", "source": "Calculation Engine"}
+      ],
+      "data_outputs": [],
+      "business_rules_enforced": ["BR-010"]
+    },
+    {
+      "id": "COMP-006",
+      "name": "Streamlit Script Runner",
+      "layer": "Framework Infrastructure",
+      "type": "Execution Engine",
+      "source_file": "streamlit package (external)",
+      "responsibilities": [
+        "Re-execute app.py from top to bottom on every user interaction",
+        "Inject widget values from Session State at the start of each rerun",
+        "Collect widget deltas during script execution",
+        "Send UI delta frames to the browser via Tornado"
+      ],
+      "dependencies": ["Tornado HTTP Server", "Session State Manager", "Python 3.x"],
+      "dependents": ["Page Configuration Block", "Calculator Form Block", "Calculation Engine"]
+    },
+    {
+      "id": "COMP-007",
+      "name": "Tornado HTTP Server",
+      "layer": "Framework Infrastructure",
+      "type": "Web Server",
+      "source_file": "streamlit package (external)",
+      "responsibilities": [
+        "Serve initial page load via HTTP GET on localhost:8501",
+        "Maintain WebSocket connections for live UI streaming",
+        "Route browser interactions to Script Runner"
+      ],
+      "dependencies": ["Host OS network stack"],
+      "dependents": ["Web Browser (external)"]
+    },
+    {
+      "id": "COMP-008",
+      "name": "Session State Manager",
+      "layer": "Framework Infrastructure",
+      "type": "State Management",
+      "source_file": "streamlit package (external)",
+      "responsibilities": [
+        "Persist widget values (num1, num2, operation, submitted) between script reruns",
+        "Provide st.session_state dict (not explicitly used by app.py but implicit via widget keys)"
+      ],
+      "dependencies": ["Streamlit Script Runner"],
+      "dependents": ["Calculator Form Block"]
+    }
+  ],
+  "patterns_detected": [
+    {
+      "id": "PAT-001",
+      "pattern": "Reactive Script Re-run Model",
+      "category": "Framework Pattern",
+      "location": "Entire app.py",
+      "description": "Streamlit re-executes the entire app.py script from top to bottom on every user interaction. Widget values from the previous run are restored from Session State. This is the core Streamlit execution model — the application code is stateless by design.",
+      "benefit": "No event handler boilerplate. Sequential code is easy to read and reason about.",
+      "risk": "Developers unfamiliar with Streamlit may accidentally create expensive side-effects that run on every rerun (e.g., database connections, file reads). Not an issue for this app but worth noting for future contributors."
+    },
+    {
+      "id": "PAT-002",
+      "pattern": "Form Submission Gate",
+      "category": "UI Batching Pattern",
+      "location": "app.py lines 8-22",
+      "description": "st.form wraps all input widgets so that no script rerun occurs until the user explicitly clicks the Calculate button. This prevents partial-input intermediate calculations.",
+      "business_rule": "BR-009",
+      "benefit": "Prevents: (1) division-by-zero triggering while user is still typing, (2) premature results with default 0.0 operands.",
+      "implementation": "st.form('calculator_form') context manager + st.form_submit_button('Calculate')"
+    },
+    {
+      "id": "PAT-003",
+      "pattern": "Guard Clause with Framework Early Exit",
+      "category": "Business Rule Enforcement Pattern",
+      "location": "app.py lines 36-38",
+      "description": "Before performing division, a guard clause checks num2 == 0 and calls st.error() + st.stop(). st.stop() is a Streamlit-native mechanism that halts all further script execution immediately — analogous to a function's early return but at the framework level.",
+      "business_rule": "BR-001",
+      "benefit": "Prevents division-by-zero with a clear user-facing error message. Clean separation: error path exits; success path continues.",
+      "risk": "Float equality comparison (num2 == 0) is technically fragile for IEEE 754 numbers. However, since Streamlit's number_input returns exactly 0.0 when the field is empty/zero, this is safe for this specific use case."
+    },
+    {
+      "id": "PAT-004",
+      "pattern": "String-Keyed Conditional Dispatch",
+      "category": "Control Flow Pattern",
+      "location": "app.py lines 25-39",
+      "description": "A flat if/elif/else chain dispatches to the correct arithmetic operation based on the operation string value ('Add', 'Subtract', 'Multiply', 'Divide'). The final else clause implicitly handles 'Divide' (ISS-001 identified risk).",
+      "benefit": "Simple and readable for the current 4-operation set.",
+      "risk": "Implicit else is fragile. If the selectbox gains a 5th option, the new operation falls silently into the Divide branch. Should be made explicit: elif operation == 'Divide'.",
+      "recommended_alternative": "Dictionary dispatch: ops = {'Add': operator.add, ...}; result = ops[operation](num1, num2)"
+    }
+  ],
+  "external_dependencies": [
+    {
+      "name": "Streamlit",
+      "type": "Web Application Framework",
+      "version_constraint": ">=1.40.0",
+      "connection": "Python import (import streamlit as st)",
+      "runtime": true,
+      "setup_only": false,
+      "used_by": ["app.py"],
+      "purpose": "Provides all UI widgets, HTTP server, WebSocket protocol, session state, and script execution engine. The entire application UI and request lifecycle is managed by Streamlit.",
+      "source": "PyPI"
+    },
+    {
+      "name": "PyPI (Python Package Index)",
+      "type": "Package Registry",
+      "connection": "pip install -r requirements.txt",
+      "runtime": false,
+      "setup_only": true,
+      "used_by": ["requirements.txt"],
+      "purpose": "Hosts the streamlit package for installation. Not contacted at application runtime.",
+      "source": "https://pypi.org"
+    },
+    {
+      "name": "Python Built-in Arithmetic",
+      "type": "Language Built-in",
+      "version_constraint": "Python 3.x",
+      "connection": "Native language operators (+, -, *, /)",
+      "runtime": true,
+      "setup_only": false,
+      "used_by": ["app.py lines 26-39"],
+      "purpose": "All four arithmetic operations are performed using Python's built-in numeric operators. No math module or third-party math library is imported.",
+      "source": "Python standard language"
+    },
+    {
+      "name": "Tornado",
+      "type": "Async HTTP Server",
+      "version_constraint": "Bundled with Streamlit",
+      "connection": "Internal Streamlit dependency",
+      "runtime": true,
+      "setup_only": false,
+      "used_by": ["Streamlit framework internals"],
+      "purpose": "Serves HTTP GET requests for initial page load and maintains WebSocket connections for live UI streaming. Not directly referenced in app.py.",
+      "source": "Installed as Streamlit transitive dependency"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "ARCH-001",
+      "title": "System Context (C4 Level 1)",
+      "type": "C4 Context Diagram",
+      "mermaid_type": "flowchart TB",
+      "description": "Shows the Simple Calculator system in its environment: End User, Web Browser, and PyPI (setup-time only). Demonstrates zero runtime external system dependencies.",
+      "location": "geninsights-architecture-diagrams.md — Diagram 1"
+    },
+    {
+      "id": "ARCH-002",
+      "title": "Component Architecture (C4 Level 2)",
+      "type": "C4 Component Diagram",
+      "mermaid_type": "flowchart TB",
+      "description": "Shows the three functional blocks of app.py (Page Config, Calculator Form, Calculation Engine+Output) alongside Streamlit framework internals (Script Runner, Tornado, Session State). Maps data flows between components.",
+      "location": "geninsights-architecture-diagrams.md — Diagram 2"
+    },
+    {
+      "id": "ARCH-003",
+      "title": "Technology Stack",
+      "type": "Layered Stack Diagram",
+      "mermaid_type": "flowchart TB",
+      "description": "Full technology stack from browser (React frontend) through HTTP/WebSocket transport, Tornado server, Streamlit framework, Python interpreter, down to app.py source and virtual environment.",
+      "location": "geninsights-architecture-diagrams.md — Diagram 3"
+    },
+    {
+      "id": "ARCH-004",
+      "title": "Deployment Architecture",
+      "type": "Deployment Diagram",
+      "mermaid_type": "flowchart LR",
+      "description": "Two-phase deployment diagram: Setup Phase (pip install from requirements.txt) and Runtime Phase (streamlit run app.py → Tornado :8501 → browser). Shows interaction flows between process and end user browser.",
+      "location": "geninsights-architecture-diagrams.md — Diagram 4"
+    },
+    {
+      "id": "ARCH-005",
+      "title": "Internal Dependencies",
+      "type": "Dependency Graph",
+      "mermaid_type": "flowchart LR",
+      "description": "Data flow dependencies between the three functional blocks and the Streamlit module. Shows variable passing (num1, num2, operation, submitted, result, symbol) between blocks.",
+      "location": "geninsights-architecture-diagrams.md — Internal Dependencies section"
+    }
+  ],
+  "metrics": {
+    "total_components": 8,
+    "application_components": 5,
+    "framework_components": 3,
+    "total_layers": 3,
+    "external_integrations_runtime": 1,
+    "external_integrations_setup_only": 1,
+    "patterns_identified": 4,
+    "source_files": 1,
+    "total_lines_of_code": 50,
+    "classes_defined": 0,
+    "functions_defined": 0,
+    "architecture_complexity": "Very Low",
+    "deployment_complexity": "Very Low",
+    "health_score": 62,
+    "primary_risk": "Zero automated test coverage — no unit tests, no integration tests, no Streamlit AppTest usage"
+  },
+  "recommendations": [
+    {
+      "id": "REC-001",
+      "priority": "High",
+      "title": "Extract arithmetic logic into pure, testable functions",
+      "description": "Create a calculator.py module with a calculate(num1: float, op: str, num2: float) -> float function. This separates business logic from UI, enabling unit testing without rendering a Streamlit UI.",
+      "effort": "1-2 hours",
+      "files_affected": ["app.py", "calculator.py (new)", "tests/test_calculator.py (new)"]
+    },
+    {
+      "id": "REC-002",
+      "priority": "High",
+      "title": "Add unit tests using Streamlit AppTest",
+      "description": "Use Streamlit's built-in AppTest harness (from streamlit.testing.v1 import AppTest) to write end-to-end tests that simulate form submission and verify result rendering. This addresses the 62/100 health score's primary driver.",
+      "effort": "2-3 hours",
+      "files_affected": ["tests/test_app.py (new)"]
+    },
+    {
+      "id": "REC-003",
+      "priority": "Medium",
+      "title": "Make Divide branch explicit (not implicit else)",
+      "description": "Replace the final `else:` branch with `elif operation == 'Divide':` to prevent future silent mismatch if the selectbox gains new operation options.",
+      "effort": "5 minutes",
+      "files_affected": ["app.py line 34"]
+    },
+    {
+      "id": "REC-004",
+      "priority": "Medium",
+      "title": "Handle IEEE 754 overflow (inf / NaN) results",
+      "description": "After computing result, add: if not math.isfinite(result): st.error('Result is not a finite number.') and st.stop(). This covers very large float multiplication producing inf.",
+      "effort": "15 minutes",
+      "files_affected": ["app.py"]
+    },
+    {
+      "id": "REC-005",
+      "priority": "Low",
+      "title": "Pin streamlit to an upper version bound",
+      "description": "Change requirements.txt from streamlit>=1.40.0 to streamlit>=1.40.0,<2.0.0 to prevent unexpected breaking-change upgrades in production or CI environments.",
+      "effort": "2 minutes",
+      "files_affected": ["requirements.txt"]
+    }
+  ]
+}

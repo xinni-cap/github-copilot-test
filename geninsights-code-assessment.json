@@ -1,0 +1,382 @@
+{
+  "_metadata": {
+    "intended_path": ".geninsights/analysis/code_assessment.json",
+    "actual_path": "geninsights-code-assessment.json",
+    "note": "Written to repository root because .geninsights is an existing file (agent work log), not a directory. Intended location is .geninsights/analysis/code_assessment.json.",
+    "skills_used": ["discover-files", "geninsights-logging", "json-output-schemas"]
+  },
+  "assessment_metadata": {
+    "timestamp": "2026-02-05T15:45:00Z",
+    "agent": "code-assessment-agent",
+    "repository": "github-copilot-test",
+    "files_reviewed": 3,
+    "source_files_reviewed": 1,
+    "overall_health_score": 62,
+    "prior_analysis_consumed": [
+      "geninsights-analysis-results.json",
+      "geninsights-business-rules.json"
+    ]
+  },
+  "summary": {
+    "total_issues": 12,
+    "by_criticality": {
+      "blocker_5": 0,
+      "severe_4": 2,
+      "normal_3": 5,
+      "minor_2": 4,
+      "trivial_1": 1
+    },
+    "by_type": {
+      "error_handling": 3,
+      "maintainability": 4,
+      "readability": 2,
+      "business_logic": 1,
+      "performance": 0,
+      "security": 0
+    },
+    "technical_debt_items": 5,
+    "enhancement_suggestions": 8,
+    "avg_code_complexity": 3.0,
+    "avg_logic_complexity": 3.0,
+    "health_score_breakdown": {
+      "base_score": 100,
+      "issue_deductions": -24,
+      "debt_deductions": -14,
+      "complexity_deductions": 0,
+      "final_score": 62
+    }
+  },
+  "file_assessments": [
+    {
+      "file": "app.py",
+      "language": "python",
+      "lines_of_code": 50,
+      "code_complexity": 3,
+      "logic_complexity": 3,
+      "complexity_notes": "A flat 50-line script with a single if/elif/else dispatch tree (depth 2). No loops, no recursion, no class hierarchy. Complexity is low but will rise sharply as operations are added without refactoring.",
+      "issues_count": 10,
+      "debt_count": 4,
+      "test_coverage_estimate": "none",
+      "documentation_level": "none"
+    },
+    {
+      "file": "requirements.txt",
+      "language": "pip-requirements",
+      "lines_of_code": 1,
+      "code_complexity": 0,
+      "logic_complexity": 0,
+      "complexity_notes": "Single dependency file. No logic.",
+      "issues_count": 1,
+      "debt_count": 1,
+      "test_coverage_estimate": "n/a",
+      "documentation_level": "n/a"
+    },
+    {
+      "file": "README.md",
+      "language": "markdown",
+      "lines_of_code": 17,
+      "code_complexity": 0,
+      "logic_complexity": 0,
+      "complexity_notes": "Documentation only. No logic.",
+      "issues_count": 1,
+      "debt_count": 0,
+      "test_coverage_estimate": "n/a",
+      "documentation_level": "minimal"
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ISS-001",
+      "file": "app.py",
+      "line": 34,
+      "type": "maintainability",
+      "title": "Implicit else branch silently catches all unrecognised operations as Divide",
+      "message": "The final `else` branch on line 34 is intended to handle only 'Divide', but it will silently execute division logic for any unrecognised operation string. If a new operation (e.g. 'Modulo') is added to the selectbox without a matching elif, the code will incorrectly perform division on it with no warning.",
+      "code_snippet": "else:\n    symbol = '÷'\n    if num2 == 0:\n        st.error('Division by zero is not allowed.')\n        st.stop()\n    result = num1 / num2",
+      "criticality": 3,
+      "solution": "Replace the bare `else` with an explicit `elif operation == 'Divide':` guard, and add a final `else: st.error(f'Unknown operation: {operation}'); st.stop()` as a safety net. This makes the dispatch exhaustive and self-documenting. It prevents silent misbehaviour when the selectbox options are extended in future. The explicit elif also makes static analysis tools (e.g. mypy, pylint) and code reviewers immediately understand the intended logic without needing to cross-reference the selectbox definition. As an alternative, consider using a dictionary mapping operation names to callables, which eliminates branching entirely.",
+      "estimated_time_hours": 0.25
+    },
+    {
+      "issue_id": "ISS-002",
+      "file": "app.py",
+      "line": 12,
+      "type": "error_handling",
+      "title": "Number inputs have no min/max bounds — very large values produce inf or overflow",
+      "message": "st.number_input on lines 12 and 14 sets no `min_value` or `max_value`. A user can enter 1e308 for both operands and select Multiply, yielding `float('inf')` as the result. Python silently wraps IEEE 754 double overflow to inf/nan rather than raising an exception. The result is then displayed in a success banner with no indication of the mathematical error.",
+      "code_snippet": "num1 = st.number_input('First number', value=0.0, format='%.6f')\nnum2 = st.number_input('Second number', value=0.0, format='%.6f')",
+      "criticality": 3,
+      "solution": "Add `min_value` and `max_value` arguments to both `st.number_input` calls (e.g. `min_value=-1e15, max_value=1e15`) appropriate for a general-purpose calculator. Separately, add a post-calculation check using `math.isfinite(result)` and `math.isnan(result)` before rendering the success banner, displaying a user-friendly error if either condition is true. Import `math` at the top of the file. Document the accepted range clearly in the input label or a help tooltip (`help='Enter a number between -1e15 and 1e15'`). This two-layer defence handles both the input-side constraint and the arithmetic-side edge case.",
+      "estimated_time_hours": 1.0
+    },
+    {
+      "issue_id": "ISS-003",
+      "file": "app.py",
+      "line": 36,
+      "type": "business_logic",
+      "title": "Division-by-zero check uses exact float equality — does not guard near-zero denominators",
+      "message": "Line 36 checks `if num2 == 0` using exact equality. While this correctly catches the literal value 0.0, it does not prevent mathematically problematic near-zero denominators such as 1e-300, which produce astronomically large results (1e300+). Additionally, using `== 0` on a float (rather than `== 0.0`) is a Python style inconsistency that can mislead readers into thinking integer comparison is intended. The guard is necessary and correct for the literal zero case, but incomplete as a mathematical safeguard.",
+      "code_snippet": "if num2 == 0:\n    st.error('Division by zero is not allowed.')\n    st.stop()",
+      "criticality": 3,
+      "solution": "Change the comparison to `if num2 == 0.0:` to make the float nature explicit. Additionally, after performing the division, add `if not math.isfinite(result): st.warning('Result is too large to represent accurately.')` to catch overflow edge cases. If the application should guard against near-zero values, consider adding a configurable epsilon threshold (e.g. `abs(num2) < 1e-15`) with a clear warning rather than a hard error, since very small-but-nonzero denominators are mathematically valid. Document the chosen threshold in a comment so future maintainers understand the reasoning.",
+      "estimated_time_hours": 0.5
+    },
+    {
+      "issue_id": "ISS-004",
+      "file": "app.py",
+      "line": 41,
+      "type": "error_handling",
+      "title": "No handling of inf or NaN results — raw IEEE 754 special values displayed to users",
+      "message": "After any of the four arithmetic operations, `result` may be `float('inf')`, `float('-inf')`, or `float('nan')` (e.g. 0.0 * float('inf') = nan, 1e308 * 10 = inf, or through any user-supplied extreme inputs). These special values are displayed verbatim in the success banner as `inf`, `-inf`, or `nan`, which are confusing and technically incorrect from a user-experience standpoint. The expander's dict also exposes these raw values.",
+      "code_snippet": "st.success(f'Result: {num1} {symbol} {num2} = {result}')",
+      "criticality": 4,
+      "solution": "Immediately after computing `result` (before the `st.success` call), add a guard block: `import math` at the top, then `if not math.isfinite(result): st.error('The result is outside the representable range (overflow or undefined). Please use smaller input values.'); st.stop()`. This catches both `inf` and `nan`. Alternatively, use a try/except block around the arithmetic to catch any `OverflowError` that Python may raise in some numeric scenarios. For the success display, also consider formatting `result` to a fixed precision using `f'{result:.6f}'` to match the input format and prevent excessively long float strings.",
+      "estimated_time_hours": 0.75
+    },
+    {
+      "issue_id": "ISS-005",
+      "file": "app.py",
+      "line": 0,
+      "type": "maintainability",
+      "title": "Zero automated test coverage — calculation logic is completely untested",
+      "message": "There is no test file (e.g. `test_app.py`, `tests/`) in the repository. All arithmetic operations, the division-by-zero guard, and edge cases (inf/NaN, negative numbers, fractional results) are untested. Streamlit applications can be tested with the `streamlit.testing.v1.AppTest` framework (available since Streamlit 1.28), making UI-level testing straightforward. The absence of tests means regressions cannot be caught automatically, and refactoring is high-risk.",
+      "code_snippet": "# No test files found in repository",
+      "criticality": 4,
+      "solution": "Create a `tests/test_app.py` file using Python's `pytest` framework combined with Streamlit's built-in `AppTest` harness (`from streamlit.testing.v1 import AppTest`). Write test cases for: (1) each arithmetic operation with positive numbers, (2) each operation with negative numbers, (3) division by zero showing the error message, (4) very large number overflow producing an error rather than 'inf', (5) the default state before submission. Add `pytest` to a `requirements-dev.txt` file and document the `pytest` command in README.md. Target at least 90% branch coverage of `app.py`'s conditional logic.",
+      "estimated_time_hours": 4.0
+    },
+    {
+      "issue_id": "ISS-006",
+      "file": "app.py",
+      "line": 24,
+      "type": "maintainability",
+      "title": "Business logic and UI rendering are fully entangled — no separation of concerns",
+      "message": "The arithmetic operations (lines 25-39) are written inline between UI widget calls with no function boundary. This makes it impossible to unit-test the calculation logic in isolation without spinning up a Streamlit runtime. It also means any future reuse of the arithmetic logic (e.g. in a REST API, a CLI, or a different UI) would require copy-pasting code. Adding a new operation requires modifying the UI dispatch block rather than adding an isolated function.",
+      "code_snippet": "if submitted:\n    if operation == 'Add':\n        result = num1 + num2\n        symbol = '+'\n    elif operation == 'Subtract':\n        ...",
+      "criticality": 3,
+      "solution": "Extract the calculation logic into a pure Python module or function, e.g. `def calculate(num1: float, num2: float, operation: str) -> tuple[float, str]:` that returns `(result, symbol)` and raises a `ValueError` for division by zero or unknown operations. Keep the Streamlit UI code in `app.py` as a thin wrapper that calls this function. Optionally place the logic in a separate `calculator.py` module imported by `app.py`. This makes the business logic independently testable with plain `pytest` (no Streamlit dependency needed), cleaner to read, and reusable across contexts.",
+      "estimated_time_hours": 1.5
+    },
+    {
+      "issue_id": "ISS-007",
+      "file": "app.py",
+      "line": 41,
+      "type": "readability",
+      "title": "Result display formatting is inconsistent with six-decimal input precision",
+      "message": "The number inputs use `format='%.6f'` to display 6 decimal places, establishing user expectations around precision. However, the result on line 41 uses Python's default float-to-string conversion (e.g. `f'{result}'`), which may produce 15+ decimal digits (e.g. `0.30000000000000004` for 0.1 + 0.2), scientific notation for small results (e.g. `1e-10`), or raw `inf` for overflows. This inconsistency confuses users who entered clean 6-decimal numbers.",
+      "code_snippet": "st.success(f'Result: {num1} {symbol} {num2} = {result}')",
+      "criticality": 2,
+      "solution": "Format all three numbers in the result string to the same 6-decimal precision: `st.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}')`. If the result may be very small or very large, consider using `f'{result:g}'` which intelligently switches between fixed and scientific notation. Update the computation details expander's dictionary to also use formatted strings rather than raw floats. Add a comment explaining the chosen precision to aid future maintainers.",
+      "estimated_time_hours": 0.25
+    },
+    {
+      "issue_id": "ISS-008",
+      "file": "app.py",
+      "line": 29,
+      "type": "readability",
+      "title": "Subtract operation uses ASCII hyphen-minus instead of proper Unicode minus sign",
+      "message": "Line 29 assigns `symbol = \"-\"` (ASCII U+002D, HYPHEN-MINUS) for the Subtract operation, while the other mathematical symbols are proper Unicode: `×` (U+00D7 MULTIPLICATION SIGN) and `÷` (U+00F7 DIVISION SIGN). The hyphen-minus is typographically incorrect for mathematical subtraction; the correct character is `−` (U+2212, MINUS SIGN). This creates an inconsistency in the mathematical notation displayed to users.",
+      "code_snippet": "symbol = \"-\"  # Line 29 — should be '−' (U+2212)",
+      "criticality": 1,
+      "solution": "Change `symbol = \"-\"` to `symbol = \"\\u2212\"` or equivalently `symbol = \"−\"` (copy-paste the Unicode minus sign character directly). This brings the subtraction display into consistency with the multiplication and division Unicode symbols already used. Add a brief comment `# U+2212 MINUS SIGN` next to the assignment to make the intent clear to future editors who might inadvertently replace it with a keyboard hyphen. The change is a single character substitution with zero functional risk.",
+      "estimated_time_hours": 0.1
+    },
+    {
+      "issue_id": "ISS-009",
+      "file": "app.py",
+      "line": 24,
+      "type": "maintainability",
+      "title": "No session state — calculation results are lost between reruns with no history",
+      "message": "Streamlit reruns the entire script on every user interaction with any widget. Without `st.session_state`, the calculated result and its context (num1, num2, operation) are discarded on each rerun. Users cannot refer back to a previous result while changing inputs for the next calculation. This is a fundamental Streamlit UX limitation that the application makes no attempt to address, making the tool less useful for iterative calculations.",
+      "code_snippet": "if submitted:\n    # result only persists for the current run; lost on next widget interaction",
+      "criticality": 2,
+      "solution": "Introduce `st.session_state` to persist the last N calculations. At the top of the script, initialise `if 'history' not in st.session_state: st.session_state.history = []`. After a successful calculation, append `{'num1': num1, 'num2': num2, 'operation': operation, 'result': result}` to `st.session_state.history`. Below the result display, render the history in a `st.dataframe` or a series of `st.write` calls. Add a 'Clear History' button with `st.button('Clear', on_click=lambda: st.session_state.history.clear())`. Cap history at a reasonable limit (e.g. last 10 calculations) to avoid memory growth.",
+      "estimated_time_hours": 1.5
+    },
+    {
+      "issue_id": "ISS-010",
+      "file": "requirements.txt",
+      "line": 1,
+      "type": "maintainability",
+      "title": "No upper version bound on streamlit — breaking changes may silently affect the app",
+      "message": "The sole dependency is specified as `streamlit>=1.40.0` with no upper version cap. This means `pip install -r requirements.txt` will always resolve to the latest available Streamlit release. Major or minor Streamlit upgrades have historically introduced breaking API changes (e.g. deprecation of `st.beta_*` APIs, changes to form behaviour, widget key handling). Without a version ceiling, a future install could silently break the application.",
+      "code_snippet": "streamlit>=1.40.0",
+      "criticality": 2,
+      "solution": "Pin to a compatible release range using compatible-release syntax: `streamlit>=1.40.0,<2.0.0`. Alternatively, pin the exact version used during development using `pip freeze > requirements.txt` and commit the result. Create a separate `requirements-dev.txt` for development/test dependencies (e.g. `pytest`, `streamlit[testing]`). Establish a process to periodically review and bump the version ceiling, verifying compatibility before each upgrade. Document the current tested version in README.md.",
+      "estimated_time_hours": 0.25
+    },
+    {
+      "issue_id": "ISS-011",
+      "file": "README.md",
+      "line": 1,
+      "type": "maintainability",
+      "title": "README is minimal and omits key developer and operational information",
+      "message": "The README provides only setup and run instructions. It omits: supported Python version, how to run tests (once they exist), environment variable configuration, contributing guidelines, the application's supported feature set (what operations are available, input constraints), a screenshot or GIF of the running app, and licence information. A developer cloning this repository cold would not know the Python version requirement, whether there are tests, or how to contribute.",
+      "code_snippet": "# README.md — 17 lines covering only setup and `streamlit run app.py`",
+      "criticality": 2,
+      "solution": "Expand README.md to include: (1) a 'Prerequisites' section specifying `Python >= 3.9` (or whichever version is required); (2) a 'Testing' section with `pip install -r requirements-dev.txt && pytest`; (3) a 'Features' section listing the four supported operations and any input constraints; (4) a 'Contributing' section with code style guidelines and PR process; (5) a 'Licence' section. Optionally add a screenshot using a relative image path (e.g. `docs/screenshot.png`). These additions make the repository self-contained as an open-source or team project.",
+      "estimated_time_hours": 1.0
+    },
+    {
+      "issue_id": "ISS-012",
+      "file": "app.py",
+      "line": 35,
+      "type": "readability",
+      "title": "Asymmetric symbol/result assignment order in the Divide branch vs. all other branches",
+      "message": "In every branch except Divide, `result` is assigned before `symbol` (lines 25-33). In the Divide branch (lines 34-39), `symbol` is assigned first (line 35), then the zero-check guard fires, and only then is `result` assigned. This ordering asymmetry is a minor readability concern: if a developer adds code between the symbol assignment and the guard, they risk introducing a code path where `symbol` is set but `result` is not yet computed, making partial state inconsistencies harder to spot during debugging.",
+      "code_snippet": "else:\n    symbol = '÷'         # symbol first\n    if num2 == 0:         # guard second\n        st.error(...)\n        st.stop()\n    result = num1 / num2  # result last\n# vs. Add branch:\n    result = num1 + num2  # result first\n    symbol = '+'          # symbol second",
+      "criticality": 1,
+      "solution": "Reorder the Divide branch for consistency: place the zero-guard check first, then assign `symbol = '÷'`, then compute `result`. Alternatively, if you refactor to the recommended pure-function approach (ENH-001), this inconsistency disappears entirely because the function returns both values atomically. At minimum, add an inline comment explaining why the guard appears before the result assignment in this branch, to prevent future developers from 'fixing' the ordering and accidentally introducing a bug.",
+      "estimated_time_hours": 0.1
+    }
+  ],
+  "technical_debt": [
+    {
+      "debt_id": "TD-001",
+      "file": "app.py (entire codebase)",
+      "debt_type": "Test Debt",
+      "description": "The repository has zero automated tests. No unit tests exist for the four arithmetic operations, the division-by-zero guard, or any edge case (inf, NaN, negative numbers, fractional precision). Streamlit 1.28+ ships a dedicated AppTest testing framework that enables full UI simulation without a browser, making this debt straightforward to pay down. Current absence of tests means every code change carries full regression risk.",
+      "impact": "HIGH",
+      "estimated_fix_time_hours": 6,
+      "priority": 5,
+      "suggested_fix": "Create `tests/test_calculator.py` using `pytest` and Streamlit's `AppTest`. Cover: all four operations with typical values, division by zero triggering error message, very large number overflow, default state (no submission), and the computation details expander. Add `pytest` and `pytest-cov` to `requirements-dev.txt`. Configure coverage reporting in `pytest.ini` or `pyproject.toml` targeting >=90% coverage. Add a GitHub Actions workflow step to run `pytest --cov=app` on every push."
+    },
+    {
+      "debt_id": "TD-002",
+      "file": "app.py",
+      "debt_type": "Design Debt",
+      "description": "The application is written as a flat procedural script with zero abstraction boundaries. Business logic (arithmetic), validation logic (division-by-zero), and UI rendering (st.* calls) are interleaved in a single 50-line file. While acceptable at this size, this architecture does not scale — adding a 5th operation, an API endpoint, or a batch calculation feature would require restructuring the entire file. The lack of functions also makes the logic impossible to test without running Streamlit.",
+      "impact": "HIGH",
+      "estimated_fix_time_hours": 4,
+      "priority": 4,
+      "suggested_fix": "Introduce a two-layer structure: (1) `calculator.py` — a pure Python module containing `def calculate(num1: float, num2: float, operation: str) -> tuple[float, str]` and an `OPERATIONS` dict or enum defining valid operations; (2) `app.py` — a thin Streamlit UI layer that imports and calls `calculator.py`. This separation enables unit testing of all arithmetic logic without Streamlit, makes `calculator.py` reusable, and keeps `app.py` focused purely on UI concerns."
+    },
+    {
+      "debt_id": "TD-003",
+      "file": "requirements.txt",
+      "debt_type": "Infrastructure Debt",
+      "description": "The `requirements.txt` file specifies only a minimum version (`streamlit>=1.40.0`) with no upper bound, no lock file, no development dependencies, and no Python version constraint. This means environment reproducibility is not guaranteed across machines or CI runs. A developer installing today vs. six months from now may get different Streamlit versions with different behaviours. There is no `pyproject.toml`, `setup.py`, `.python-version`, or equivalent to communicate the project's Python version requirement.",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 2,
+      "priority": 3,
+      "suggested_fix": "Adopt a modern Python packaging approach: (1) Add `pyproject.toml` with `[project]` metadata including `requires-python = '>=3.9'` and the streamlit dependency with an upper bound; (2) Create `requirements.txt` as a pinned lock file generated by `pip freeze`; (3) Create `requirements-dev.txt` for pytest and other dev tools; (4) Add a `.python-version` file (e.g. for pyenv). Alternatively, use `pip-tools` to maintain both `requirements.in` (human-managed) and `requirements.txt` (machine-generated lock file)."
+    },
+    {
+      "debt_id": "TD-004",
+      "file": "app.py",
+      "debt_type": "Code Debt",
+      "description": "There is no input validation framework — validation is ad hoc (only one check: `num2 == 0`). As the application grows, adding new validations (bounds checking, NaN/inf result guards, new operations) requires manually inserting conditional blocks within the main script. There is no centralised validation layer, no custom error type hierarchy, and no consistent error reporting pattern (st.error + st.stop is used in only one place, while other potential error conditions silently produce confusing output).",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 3,
+      "priority": 3,
+      "suggested_fix": "Define a `validate_inputs(num1, num2, operation)` function that raises a custom `CalculatorError(ValueError)` exception for any invalid input condition (zero divisor, out-of-range values, unknown operation). In the Streamlit UI layer, wrap the call in a try/except block: `try: result, symbol = calculate(...) except CalculatorError as e: st.error(str(e)); st.stop()`. This centralises all validation, makes adding new rules trivial, and produces consistent error presentation. Add `math.isfinite()` checks post-calculation to catch overflow."
+    },
+    {
+      "debt_id": "TD-005",
+      "file": "README.md",
+      "debt_type": "Documentation Debt",
+      "description": "Project documentation is limited to a 17-line README covering only setup and run commands. Missing: Python version requirements, feature description, input constraints, testing instructions, contribution guide, licence, architecture notes, and known limitations. A new developer or open-source contributor has no information beyond how to start the app.",
+      "impact": "LOW",
+      "estimated_fix_time_hours": 2,
+      "priority": 2,
+      "suggested_fix": "Expand README.md with the following sections: Features (list the four operations, note 6-decimal precision, note division-by-zero protection), Prerequisites (Python >=3.9, pip), Installation, Running, Testing (once tests exist), Architecture Overview (brief: app.py + calculator.py separation after refactor), Known Limitations (no history, no keyboard shortcuts), Contributing, Licence. Add a screenshot. Consider adding a CHANGELOG.md and CONTRIBUTING.md for open-source readiness."
+    }
+  ],
+  "enhancements": [
+    {
+      "enhancement_id": "ENH-001",
+      "file": "app.py / calculator.py (new file)",
+      "title": "Extract arithmetic logic into a pure, testable calculator module",
+      "description": "Move all calculation logic out of the Streamlit script into a standalone `calculator.py` module with clearly typed functions. This is the single highest-value refactoring for this codebase, enabling unit testing, reuse, and clean architecture.",
+      "category": "Refactoring",
+      "example": "# calculator.py\nfrom __future__ import annotations\nimport math\n\nOPERATIONS = ('Add', 'Subtract', 'Multiply', 'Divide')\nSYMBOLS = {'Add': '+', 'Subtract': '\\u2212', 'Multiply': '\\u00d7', 'Divide': '\\u00f7'}\n\nclass CalculatorError(ValueError):\n    pass\n\ndef calculate(num1: float, num2: float, operation: str) -> tuple[float, str]:\n    if operation not in OPERATIONS:\n        raise CalculatorError(f'Unknown operation: {operation!r}')\n    if operation == 'Divide' and num2 == 0.0:\n        raise CalculatorError('Division by zero is not allowed.')\n    ops = {\n        'Add':      lambda a, b: a + b,\n        'Subtract': lambda a, b: a - b,\n        'Multiply': lambda a, b: a * b,\n        'Divide':   lambda a, b: a / b,\n    }\n    result = ops[operation](num1, num2)\n    if not math.isfinite(result):\n        raise CalculatorError('Result is out of representable range (overflow).')\n    return result, SYMBOLS[operation]",
+      "priority": 5,
+      "benefits": "Enables unit testing of all arithmetic logic without Streamlit. Eliminates the implicit else branch (ISS-001). Centralises symbol definitions. Makes adding new operations a single dictionary entry. Provides a reusable module for CLI or API wrappers."
+    },
+    {
+      "enhancement_id": "ENH-002",
+      "file": "tests/test_calculator.py (new file)",
+      "title": "Add comprehensive pytest test suite using Streamlit AppTest",
+      "description": "Create a full test suite covering all operations, edge cases, and error conditions. Use both plain pytest for calculator.py logic and Streamlit's AppTest for UI integration testing.",
+      "category": "Module Standardization",
+      "example": "# tests/test_calculator.py\nimport pytest\nfrom calculator import calculate, CalculatorError\n\n@pytest.mark.parametrize('op,a,b,expected', [\n    ('Add',      3.0,  2.0,  5.0),\n    ('Subtract', 5.0,  2.0,  3.0),\n    ('Multiply', 3.0,  4.0, 12.0),\n    ('Divide',   9.0,  3.0,  3.0),\n    ('Add',     -1.0, -1.0, -2.0),\n    ('Divide',   1.0,  3.0,  1/3),\n])\ndef test_operations(op, a, b, expected):\n    result, _ = calculate(a, b, op)\n    assert result == pytest.approx(expected)\n\ndef test_division_by_zero():\n    with pytest.raises(CalculatorError, match='Division by zero'):\n        calculate(5.0, 0.0, 'Divide')\n\ndef test_unknown_operation():\n    with pytest.raises(CalculatorError, match='Unknown operation'):\n        calculate(1.0, 1.0, 'Modulo')\n\n# tests/test_app_ui.py\nfrom streamlit.testing.v1 import AppTest\ndef test_add_via_ui():\n    at = AppTest.from_file('app.py').run()\n    at.number_input[0].set_value(10.0)\n    at.number_input[1].set_value(5.0)\n    at.selectbox[0].set_value('Add')\n    at.button[0].click().run()\n    assert '15' in at.success[0].value",
+      "priority": 5,
+      "benefits": "Provides automated regression protection. Enables confident refactoring. Documents expected behaviour as executable specifications. Makes CI/CD pipeline viable. Satisfies any future code quality gate requirements."
+    },
+    {
+      "enhancement_id": "ENH-003",
+      "file": "app.py",
+      "title": "Add post-calculation result validation for inf and NaN",
+      "description": "Guard the success display path with math.isfinite() to prevent IEEE 754 special values from being shown to users as valid results.",
+      "category": "Refactoring",
+      "example": "import math\n\n# After computing result:\nif not math.isfinite(result):\n    st.error(\n        f'The result of {num1} {symbol} {num2} is outside the representable '\n        f'numeric range. Please use smaller input values.'\n    )\n    st.stop()\n\nst.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}')",
+      "priority": 4,
+      "benefits": "Prevents confusing 'inf' or 'nan' from appearing in the success banner. Closes a user-experience gap. Handles overflow from extreme multiplication/division inputs. Aligns with the existing division-by-zero error pattern."
+    },
+    {
+      "enhancement_id": "ENH-004",
+      "file": "requirements.txt / pyproject.toml (new)",
+      "title": "Adopt modern Python packaging with pinned dependencies and dev requirements",
+      "description": "Replace the single-line requirements.txt with a proper packaging setup: upper-bounded runtime deps, a locked requirements file, and a separate dev requirements file.",
+      "category": "Project Configuration",
+      "example": "# pyproject.toml\n[project]\nname = 'streamlit-calculator'\nversion = '1.0.0'\nrequires-python = '>=3.9'\ndependencies = ['streamlit>=1.40.0,<2.0.0']\n\n[project.optional-dependencies]\ndev = ['pytest>=7.0', 'pytest-cov>=4.0', 'streamlit[testing]']\n\n# requirements.txt (generated by pip-compile or pip freeze)\nstreamlit==1.42.0\n\n# requirements-dev.txt\npytest==8.1.0\npytest-cov==5.0.0",
+      "priority": 4,
+      "benefits": "Guarantees reproducible builds across all environments. Prevents surprise breakage from Streamlit major version upgrades. Separates test/dev tooling from runtime dependencies. Communicates Python version requirements clearly."
+    },
+    {
+      "enhancement_id": "ENH-005",
+      "file": "app.py",
+      "title": "Add st.session_state calculation history panel",
+      "description": "Use Streamlit session state to persist calculation history across reruns, displaying the last N results in a collapsible history panel below the main calculator.",
+      "category": "Code Standardization",
+      "example": "# At the top of app.py, after imports:\nif 'history' not in st.session_state:\n    st.session_state.history = []\n\n# After successful calculation:\nst.session_state.history.insert(0, {\n    'Expression': f'{num1:.6f} {symbol} {num2:.6f}',\n    'Result': f'{result:.6f}',\n    'Operation': operation,\n})\nst.session_state.history = st.session_state.history[:10]  # keep last 10\n\n# Below result display:\nif st.session_state.history:\n    with st.expander(f'Calculation History ({len(st.session_state.history)} entries)'):\n        import pandas as pd\n        st.dataframe(pd.DataFrame(st.session_state.history), use_container_width=True)\n        if st.button('Clear History'):\n            st.session_state.history = []\n            st.rerun()",
+      "priority": 3,
+      "benefits": "Significantly improves UX for iterative calculations. Prevents results from disappearing on widget interaction. Demonstrates correct Streamlit state management patterns. Provides an audit trail of calculations within a session."
+    },
+    {
+      "enhancement_id": "ENH-006",
+      "file": "app.py",
+      "title": "Replace implicit else with explicit elif and exhaustive guard for Divide",
+      "description": "Make the operation dispatch block fully explicit with no implicit catch-all, improving safety when the operation list is extended.",
+      "category": "Refactoring",
+      "example": "if operation == 'Add':\n    result = num1 + num2\n    symbol = '+'\nelif operation == 'Subtract':\n    result = num1 - num2\n    symbol = '\\u2212'  # U+2212 MINUS SIGN\nelif operation == 'Multiply':\n    result = num1 * num2\n    symbol = '\\u00d7'  # U+00D7 MULTIPLICATION SIGN\nelif operation == 'Divide':\n    symbol = '\\u00f7'  # U+00F7 DIVISION SIGN\n    if num2 == 0.0:\n        st.error('Division by zero is not allowed.')\n        st.stop()\n    result = num1 / num2\nelse:\n    # Defensive guard — should never be reached with a constrained selectbox\n    st.error(f'Unknown operation: {operation!r}. Please select a valid operation.')\n    st.stop()",
+      "priority": 3,
+      "benefits": "Eliminates the silent implicit-else risk (ISS-001). Makes the code self-documenting. Also fixes the Unicode minus sign issue (ISS-008). The defensive else ensures no silent failures if the selectbox options are ever extended."
+    },
+    {
+      "enhancement_id": "ENH-007",
+      "file": "app.py",
+      "title": "Add input bounds validation with user-friendly help tooltips",
+      "description": "Set min_value and max_value on both number_input widgets and add help tooltip text explaining the accepted range, preventing overflow results proactively.",
+      "category": "Code Standardization",
+      "example": "MAX_VAL = 1e15\nMIN_VAL = -1e15\n\nwith col1:\n    num1 = st.number_input(\n        'First number',\n        value=0.0,\n        min_value=MIN_VAL,\n        max_value=MAX_VAL,\n        format='%.6f',\n        help=f'Enter a number between {MIN_VAL:,.0f} and {MAX_VAL:,.0f}',\n    )\nwith col2:\n    num2 = st.number_input(\n        'Second number',\n        value=0.0,\n        min_value=MIN_VAL,\n        max_value=MAX_VAL,\n        format='%.6f',\n        help=f'Enter a number between {MIN_VAL:,.0f} and {MAX_VAL:,.0f}. '\n             f'Cannot be 0 for division.',\n    )",
+      "priority": 3,
+      "benefits": "Prevents overflow results from extreme inputs at the UI layer. Provides self-documenting constraints via tooltips. Makes the application more robust without additional error handling code. Improves accessibility."
+    },
+    {
+      "enhancement_id": "ENH-008",
+      "file": "app.py",
+      "title": "Standardise result display precision to match input format",
+      "description": "Apply consistent %.6f formatting to all numbers in the result success message and computation details dictionary, matching the precision shown in the input widgets.",
+      "category": "Code Standardization",
+      "example": "# Replace:\nst.success(f'Result: {num1} {symbol} {num2} = {result}')\n\n# With:\nst.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}')\n\n# And in the expander:\nwith st.expander('Computation details'):\n    st.write({\n        'first_number':  f'{num1:.6f}',\n        'second_number': f'{num2:.6f}',\n        'operation':     operation,\n        'result':        f'{result:.6f}',\n    })",
+      "priority": 2,
+      "benefits": "Ensures the display precision matches user input expectations. Avoids surprising floating-point artefacts like 0.30000000000000004. Creates a polished, professional feel. Zero functional risk."
+    }
+  ],
+  "metrics": {
+    "average_code_complexity": 3.0,
+    "average_logic_complexity": 3.0,
+    "max_code_complexity": 3,
+    "files_above_complexity_threshold_7": 0,
+    "test_coverage_estimate": "none",
+    "documentation_level": "minimal",
+    "issues_by_file": {
+      "app.py": 10,
+      "requirements.txt": 1,
+      "README.md": 1
+    },
+    "estimated_total_fix_hours": 12.2,
+    "estimated_debt_fix_hours": 17
+  }
+}

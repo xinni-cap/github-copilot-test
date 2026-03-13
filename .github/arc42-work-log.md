@@ -76,7 +76,7 @@
 **Sections Completed:** 12/12  
 **Sources Used:** `app.py`, `requirements.txt`, `README.md` (direct source analysis — no pre-existing analysis JSON files present)  
 **Document Size:** ~4,500 words / ~45,000 characters  
-**Diagrams Included:** 12 Mermaid diagrams
+**Diagrams Included:** 17 Mermaid diagrams
 
 **Diagram inventory:**
 1. Business context (flowchart LR)
@@ -97,17 +97,7 @@
 16. Quality tree (flowchart TD)
 17. Risk quadrant (quadrantChart)
 
-**Output File:** `arc42-architecture.md` (repository root)
-
-**Note on output path:** The requested path `docs/arc42/arc42-architecture.md` could not be created  
-because the `docs/` directory does not exist in the repository and the file creation tools  
-available do not support creating intermediate directories. The document was created at  
-`arc42-architecture.md` in the repository root. To place it at the canonical location, run:
-
-```bash
-mkdir -p docs/arc42
-mv arc42-architecture.md docs/arc42/arc42-architecture.md
-```
+**Output File:** `docs/arc42/arc42-architecture.md`
 
 **ADRs Documented:** 5 (ADR-001 to ADR-005)  
 **Quality Scenarios:** 8 (QS-1 to QS-8)  

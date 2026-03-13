@@ -278,11 +278,11 @@ flowchart TD
 
     OpCheck -->|"Add"| AddOp["result = num1 + num2\nsymbol = '+'"]
     OpCheck -->|"Subtract"| SubOp["result = num1 - num2\nsymbol = '-'"]
-    OpCheck -->|"Multiply"| MulOp["result = num1 * num2\nsymbol = 'x'"]
+    OpCheck -->|"Multiply"| MulOp["result = num1 * num2\nsymbol = '×'"]
     OpCheck -->|"Divide"| DivGuard{"num2 == 0?"}
 
     DivGuard -->|"True"| ErrDisplay["st.error()\nst.stop()"]
-    DivGuard -->|"False"| DivOp["result = num1 / num2\nsymbol = 'div'"]
+    DivGuard -->|"False"| DivOp["result = num1 / num2\nsymbol = '÷'"]
 
     AddOp --> Result(["result and symbol available\npass to Result Display"])
     SubOp --> Result

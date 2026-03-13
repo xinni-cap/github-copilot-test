@@ -5,12 +5,6 @@
 **Status:** Generated from source-code analysis  
 **Repository:** xinni-cap/github-copilot-test  
 
-> **Note:** This file is placed at the repository root (`arc42-architecture.md`).  
-> To relocate it to `docs/arc42-architecture.md`, create the `docs/` directory and move the file:
-> ```bash
-> mkdir -p docs && mv arc42-architecture.md docs/arc42-architecture.md
-> ```
-
 ---
 
 ## Table of Contents

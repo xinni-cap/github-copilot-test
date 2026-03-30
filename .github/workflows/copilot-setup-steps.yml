@@ -1,4 +1,4 @@
-name: "Copilot Setup Steps Test"
+name: "Copilot Setup Steps"
 on:
   workflow_dispatch:
   pull_request:

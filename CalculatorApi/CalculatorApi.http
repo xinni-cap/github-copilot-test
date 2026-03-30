@@ -1,0 +1,31 @@
+@CalculatorApi_HostAddress = http://localhost:5113
+
+### Add
+GET {{CalculatorApi_HostAddress}}/api/calculate/add?num1=3&num2=4
+Accept: application/json
+
+### Subtract
+GET {{CalculatorApi_HostAddress}}/api/calculate/subtract?num1=10&num2=3
+Accept: application/json
+
+### Multiply
+GET {{CalculatorApi_HostAddress}}/api/calculate/multiply?num1=6&num2=7
+Accept: application/json
+
+### Divide
+GET {{CalculatorApi_HostAddress}}/api/calculate/divide?num1=15&num2=3
+Accept: application/json
+
+### Divide by zero (expects 400)
+GET {{CalculatorApi_HostAddress}}/api/calculate/divide?num1=5&num2=0
+Accept: application/json
+
+### POST calculate
+POST {{CalculatorApi_HostAddress}}/api/calculate
+Content-Type: application/json
+
+{
+  "number1": 10,
+  "number2": 2,
+  "operation": "Divide"
+}

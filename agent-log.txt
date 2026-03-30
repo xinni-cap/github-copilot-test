@@ -1,0 +1,1 @@
+2025-01-01T00:00:00Z | arc42-documentor | created | arc42-architecture.md | Full Arc42 documentation (12 sections, 13 Mermaid diagrams) for Streamlit Calculator App — placed at repo root; move to docs/arc42/arc42-architecture.md with `mkdir -p docs/arc42`

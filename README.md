@@ -61,8 +61,8 @@ dotnet build CalculatorApp.slnx -c Release
 dotnet run --project CalculatorApi -c Release
 ```
 
-The API starts on `http://localhost:5000` (and `https://localhost:5001`).  
-Open `http://localhost:5000/swagger` in a browser for the interactive Swagger UI.
+The API starts on `http://localhost:5113` (and `https://localhost:7153`).  
+Open `http://localhost:5113/swagger` in a browser for the interactive Swagger UI.
 
 ### API endpoints
 
@@ -71,7 +71,7 @@ Open `http://localhost:5000/swagger` in a browser for the interactive Swagger UI
 Perform any of the four operations in a single endpoint.
 
 ```bash
-curl -X POST http://localhost:5000/api/calculate \
+curl -X POST http://localhost:5113/api/calculate \
      -H "Content-Type: application/json" \
      -d '{"number1": 10, "number2": 2, "operation": "Divide"}'
 ```
@@ -101,7 +101,7 @@ Response:
 Division by zero returns `400 Bad Request`:
 
 ```bash
-curl http://localhost:5000/api/calculate/divide?num1=5\&num2=0
+curl http://localhost:5113/api/calculate/divide?num1=5\&num2=0
 # {"error":"Division by zero is not allowed."}
 ```
 

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class CalculatorController {
 
+    private static final String[] OPERATIONS = {"Add", "Subtract", "Multiply", "Divide"};
+
     private final CalculatorService calculatorService;
 
     public CalculatorController(CalculatorService calculatorService) {
@@ -20,7 +22,7 @@ public class CalculatorController {
 
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("operations", new String[]{"Add", "Subtract", "Multiply", "Divide"});
+        model.addAttribute("operations", OPERATIONS);
         return "calculator";
     }
 
@@ -34,7 +36,7 @@ public class CalculatorController {
         CalculatorRequest request = new CalculatorRequest(firstNumber, secondNumber, operation);
         CalculatorResponse response = calculatorService.calculate(request);
 
-        model.addAttribute("operations", new String[]{"Add", "Subtract", "Multiply", "Divide"});
+        model.addAttribute("operations", OPERATIONS);
         model.addAttribute("firstNumber", firstNumber);
         model.addAttribute("secondNumber", secondNumber);
         model.addAttribute("selectedOperation", operation);

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator 🧮</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>🧮 Simple Calculator</h1>
+    <p class="caption">Perform quick arithmetic with a clean UI.</p>
+
+    <form method="post" th:action="@{/calculate}">
+
+        <div class="input-row">
+            <div class="field">
+                <label for="firstNumber">First number</label>
+                <input id="firstNumber"
+                       name="firstNumber"
+                       type="number"
+                       step="any"
+                       th:value="${firstNumber}"
+                       required />
+            </div>
+
+            <div class="field">
+                <label for="secondNumber">Second number</label>
+                <input id="secondNumber"
+                       name="secondNumber"
+                       type="number"
+                       step="any"
+                       th:value="${secondNumber}"
+                       required />
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="operation">Operation</label>
+            <select id="operation" name="operation">
+                <option th:each="op : ${operations}"
+                        th:value="${op.name()}"
+                        th:text="${op.name().charAt(0) + op.name().substring(1).toLowerCase()}"
+                        th:selected="${op == selectedOperation}">
+                </option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-calculate">Calculate</button>
+    </form>
+
+    <!-- Error banner -->
+    <div th:if="${errorMessage}" class="alert alert-error">
+        <strong>Error:</strong> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Success result -->
+    <div th:if="${result}" class="alert alert-success">
+        <strong>Result:</strong>
+        <span th:text="${result.expression()}"></span>
+    </div>
+
+    <!-- Computation details (collapsible) -->
+    <details th:if="${result}" class="details-box">
+        <summary>Computation details</summary>
+        <table>
+            <tr>
+                <th>First number</th>
+                <td th:text="${result.firstNumber()}"></td>
+            </tr>
+            <tr>
+                <th>Second number</th>
+                <td th:text="${result.secondNumber()}"></td>
+            </tr>
+            <tr>
+                <th>Operation</th>
+                <td th:text="${result.operation()}"></td>
+            </tr>
+            <tr>
+                <th>Result</th>
+                <td th:text="${result.result()}"></td>
+            </tr>
+        </table>
+    </details>
+</div>
+</body>
+</html>

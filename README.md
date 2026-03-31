@@ -17,3 +17,9 @@ Start the app with:
 `streamlit run app.py`
 
 Then open the local URL shown in the terminal (usually `http://localhost:8501`).
+
+## Test
+
+Run the test suite with:
+
+`pytest`

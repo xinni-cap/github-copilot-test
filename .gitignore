@@ -1,0 +1,34 @@
+## .NET build artifacts
+bin/
+obj/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## VS / Rider
+.vs/
+.idea/
+*.DotSettings.user
+
+## Publish output
+publish/
+*.pubxml
+
+## NuGet
+*.nupkg
+*.nuget.targets
+packages/
+!**/[Pp]ackages/build/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Python (retained for reference)
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/

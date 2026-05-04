@@ -1,0 +1,250 @@
+{
+  "application": "Streamlit Calculator App",
+  "version": "1.0.0",
+  "analysis_date": "2025-01-31",
+  "business_domains": [
+    {
+      "domain": "Arithmetic Computation",
+      "description": "Core domain covering all arithmetic operations supported by the calculator.",
+      "business_rules": [
+        {
+          "rule_id": "BR-001",
+          "rule_name": "Supported Operations",
+          "description": "The calculator supports exactly four arithmetic operations: Add, Subtract, Multiply, and Divide.",
+          "source_file": "app.py",
+          "source_lines": "16-20",
+          "rule_type": "Constraint",
+          "priority": "High",
+          "conditions": [],
+          "actions": ["Present the user with a selectbox containing exactly the options: Add, Subtract, Multiply, Divide"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-002",
+          "rule_name": "Default Operation",
+          "description": "When the application loads, the default selected operation is 'Add' (index 0).",
+          "source_file": "app.py",
+          "source_lines": "16-20",
+          "rule_type": "Default Value",
+          "priority": "Low",
+          "conditions": ["User has not changed the operation selector"],
+          "actions": ["Pre-select 'Add' in the operation dropdown"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-003",
+          "rule_name": "Addition Computation",
+          "description": "When operation is 'Add', the result is computed as num1 + num2 and displayed with the '+' symbol.",
+          "source_file": "app.py",
+          "source_lines": "25-27",
+          "rule_type": "Calculation",
+          "priority": "High",
+          "conditions": ["submitted == True", "operation == 'Add'"],
+          "actions": ["result = num1 + num2", "symbol = '+'"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-004",
+          "rule_name": "Subtraction Computation",
+          "description": "When operation is 'Subtract', the result is computed as num1 - num2 and displayed with the '-' symbol.",
+          "source_file": "app.py",
+          "source_lines": "28-30",
+          "rule_type": "Calculation",
+          "priority": "High",
+          "conditions": ["submitted == True", "operation == 'Subtract'"],
+          "actions": ["result = num1 - num2", "symbol = '-'"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-005",
+          "rule_name": "Multiplication Computation",
+          "description": "When operation is 'Multiply', the result is computed as num1 * num2 and displayed with the '×' symbol.",
+          "source_file": "app.py",
+          "source_lines": "31-33",
+          "rule_type": "Calculation",
+          "priority": "High",
+          "conditions": ["submitted == True", "operation == 'Multiply'"],
+          "actions": ["result = num1 * num2", "symbol = '×'"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-006",
+          "rule_name": "Division Computation",
+          "description": "When operation is 'Divide' and num2 is non-zero, the result is computed as num1 / num2 and displayed with the '÷' symbol.",
+          "source_file": "app.py",
+          "source_lines": "34-39",
+          "rule_type": "Calculation",
+          "priority": "High",
+          "conditions": ["submitted == True", "operation == 'Divide'", "num2 != 0"],
+          "actions": ["result = num1 / num2", "symbol = '÷'"],
+          "exceptions": ["Division by zero is blocked before this action executes (see BR-007)"]
+        },
+        {
+          "rule_id": "BR-007",
+          "rule_name": "Division by Zero Prevention",
+          "description": "When the Divide operation is selected and the second number equals zero, the application must display an error message and halt further execution. No result value is computed or displayed.",
+          "source_file": "app.py",
+          "source_lines": "36-38",
+          "rule_type": "Validation / Guard",
+          "priority": "Critical",
+          "conditions": ["submitted == True", "operation == 'Divide'", "num2 == 0"],
+          "actions": [
+            "Display error: 'Division by zero is not allowed.'",
+            "Call st.stop() to terminate script execution immediately"
+          ],
+          "exceptions": []
+        }
+      ]
+    },
+    {
+      "domain": "User Input",
+      "description": "Rules governing how user input is captured, defaulted, and formatted.",
+      "business_rules": [
+        {
+          "rule_id": "BR-008",
+          "rule_name": "Default Input Values",
+          "description": "Both number inputs default to 0.0 when the application first loads or is reset.",
+          "source_file": "app.py",
+          "source_lines": "12-14",
+          "rule_type": "Default Value",
+          "priority": "Medium",
+          "conditions": ["Page load or form reset"],
+          "actions": ["Set num1 = 0.0", "Set num2 = 0.0"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-009",
+          "rule_name": "Number Input Precision",
+          "description": "Both number inputs accept and display values with up to six decimal places.",
+          "source_file": "app.py",
+          "source_lines": "12-14",
+          "rule_type": "Format / Constraint",
+          "priority": "Medium",
+          "conditions": [],
+          "actions": ["Format numbers using '%.6f' (six decimal places)"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-010",
+          "rule_name": "Form Submission Requirement",
+          "description": "Computation is only triggered when the user explicitly clicks the 'Calculate' button. Widget changes alone do not produce a result.",
+          "source_file": "app.py",
+          "source_lines": "22-24",
+          "rule_type": "Workflow / Trigger",
+          "priority": "High",
+          "conditions": ["submitted == True"],
+          "actions": ["Begin computation block"],
+          "exceptions": []
+        }
+      ]
+    },
+    {
+      "domain": "Result Presentation",
+      "description": "Rules governing how computation results and metadata are presented to the user.",
+      "business_rules": [
+        {
+          "rule_id": "BR-011",
+          "rule_name": "Result Expression Format",
+          "description": "The result is displayed in the format '<num1> <symbol> <num2> = <result>' inside a green success banner.",
+          "source_file": "app.py",
+          "source_lines": "41",
+          "rule_type": "Display Format",
+          "priority": "Medium",
+          "conditions": ["Computation completed without error"],
+          "actions": ["Render st.success with f-string: f'Result: {num1} {symbol} {num2} = {result}'"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-012",
+          "rule_name": "Operation Symbol Mapping",
+          "description": "Each operation maps to a specific Unicode symbol used in the result expression: Add → '+', Subtract → '-', Multiply → '×' (U+00D7), Divide → '÷' (U+00F7).",
+          "source_file": "app.py",
+          "source_lines": "25-39",
+          "rule_type": "Mapping",
+          "priority": "Low",
+          "conditions": [],
+          "actions": ["Assign symbol string based on selected operation"],
+          "exceptions": []
+        },
+        {
+          "rule_id": "BR-013",
+          "rule_name": "Computation Details Disclosure",
+          "description": "After a successful computation, the structured computation details (first_number, second_number, operation, result) are made available in a collapsible 'Computation details' expander panel.",
+          "source_file": "app.py",
+          "source_lines": "43-49",
+          "rule_type": "Transparency / Audit",
+          "priority": "Low",
+          "conditions": ["Computation completed without error"],
+          "actions": [
+            "Render st.expander with label 'Computation details'",
+            "Display dict: {first_number, second_number, operation, result}"
+          ],
+          "exceptions": []
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "workflow_name": "Perform Arithmetic Calculation",
+      "description": "End-to-end workflow from user input to result display.",
+      "trigger": "User clicks the 'Calculate' button",
+      "steps": [
+        {
+          "step": 1,
+          "name": "Load Application",
+          "description": "Page loads with default values (num1=0.0, num2=0.0, operation='Add').",
+          "business_rules_applied": ["BR-002", "BR-008", "BR-009"]
+        },
+        {
+          "step": 2,
+          "name": "Enter Inputs",
+          "description": "User fills in First number, Second number, and selects an operation.",
+          "business_rules_applied": ["BR-001", "BR-008", "BR-009", "BR-010"]
+        },
+        {
+          "step": 3,
+          "name": "Submit Form",
+          "description": "User clicks 'Calculate'. Streamlit re-runs the script with submitted=True.",
+          "business_rules_applied": ["BR-010"]
+        },
+        {
+          "step": 4,
+          "name": "Evaluate Operation",
+          "description": "The script branches on the operation value and computes the result.",
+          "business_rules_applied": ["BR-003", "BR-004", "BR-005", "BR-006", "BR-007"]
+        },
+        {
+          "step": 5,
+          "name": "Display Result",
+          "description": "If successful, render the result banner and expander. If division-by-zero, render error and stop.",
+          "business_rules_applied": ["BR-007", "BR-011", "BR-012", "BR-013"]
+        }
+      ],
+      "happy_path": "User enters two numbers, selects Add/Subtract/Multiply, clicks Calculate → result shown.",
+      "error_paths": [
+        {
+          "scenario": "User selects Divide with second number = 0",
+          "outcome": "Error message displayed, execution halted, no result shown",
+          "business_rule": "BR-007"
+        }
+      ]
+    }
+  ],
+  "validation_summary": {
+    "total_rules": 13,
+    "rules_by_type": {
+      "Calculation": 4,
+      "Validation / Guard": 1,
+      "Default Value": 2,
+      "Constraint": 1,
+      "Format / Constraint": 1,
+      "Workflow / Trigger": 1,
+      "Display Format": 1,
+      "Mapping": 1,
+      "Transparency / Audit": 1
+    },
+    "critical_rules": ["BR-007"],
+    "high_priority_rules": ["BR-001", "BR-003", "BR-004", "BR-005", "BR-006", "BR-010"]
+  }
+}

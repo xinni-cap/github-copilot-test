@@ -40,21 +40,23 @@ When a user requests code analysis, you should:
 For a complete analysis, execute in this order:
 1. **code-documentor** first (generates `analysis_results.json` and `business_rules_extractor_analysis.json`)
 2. **ast-analyzer** (can run in parallel with documentor)
-3. **code-assessor** (uses documentor output)
-4. **uml-generator** (uses documentor and AST output)
-5. **bpmn-generator** (uses documentor output)
-6. **ddl-generator** (uses workflow analysis from documentor)
-7. **architecture-analyzer** (uses all previous outputs)
-8. **documentation-analyzer** (analyzes existing docs and compares with code analysis)
-9. **executive-summary** (synthesizes all technical analysis into executive-level insights and strategic recommendations)
-10. **arc42-documentor** (synthesizes all outputs including executive summary into Arc42 architecture documentation with Mermaid diagrams)
+3. **[PARALLEL]** Run the following agents simultaneously — all depend only on `code-documentor` output and are independent of each other:
+   - **code-assessor** (uses documentor output)
+   - **uml-generator** (uses documentor and AST output)
+   - **bpmn-generator** (uses documentor output)
+   - **ddl-generator** _(conditional: only run if the codebase contains database entities, ORM models, SQL queries, or persistence layer code detected in `analysis_results.json`)_
+4. **[PARALLEL]** Run the following two agents simultaneously — both are independent of each other and depend only on prior outputs:
+   - **architecture-analyzer** (uses all previous outputs)
+   - **documentation-analyzer** (analyzes existing docs and compares with code analysis)
+5. **executive-summary** (synthesizes all technical analysis into executive-level insights and strategic recommendations — requires steps 1–4 to be complete)
+6. **arc42-documentor** (synthesizes all outputs including executive summary into Arc42 architecture documentation with Mermaid diagrams — must run last)
 
 ### Targeted Analysis
 For specific requests, select only relevant agents:
 - "Document this codebase" → code-documentor only
 - "Analyze code quality" → code-assessor only
 - "Generate UML diagrams" → code-documentor + uml-generator
-- "Create database schema" → code-documentor + ddl-generator
+- "Create database schema" → code-documentor + ddl-generator _(only if database entities detected)_
 - "Create executive summary" → All analysis agents + executive-summary (skip arc42-documentor if not needed)
 - "Create Arc42 documentation" → All agents + executive-summary + arc42-documentor as final step
 - "Generate architecture docs" → code-documentor + architecture-analyzer + executive-summary + arc42-documentor
@@ -62,12 +64,13 @@ For specific requests, select only relevant agents:
 ## Best Practices
 
 1. **Always start with code-documentor** for most analysis tasks (it provides foundational data)
-2. **Check dependencies** before running agents (some need input from others)
-3. **Handle errors gracefully** - if one agent fails, continue with others when possible
-4. **Provide progress updates** to users during long-running analyses
-5. **Delegate final documentation** - let arc42-documentor synthesize the final Arc42 document
-6. **Don't generate diagrams yourself** - coordinate the specialized agents for diagram generation
-7. **Respect project structure** - analyze file-by-file deterministically
+2. **Parallelize independent agents** — run code-assessor, uml-generator, bpmn-generator, and ddl-generator simultaneously after code-documentor completes (step 3)
+3. **Check dependencies** before running agents (some need input from others)
+4. **Handle errors gracefully** - if one agent fails, continue with others when possible
+5. **Provide progress updates** to users during long-running analyses
+6. **Delegate final documentation** - let arc42-documentor synthesize the final Arc42 document
+7. **Don't generate diagrams yourself** - coordinate the specialized agents for diagram generation
+8. **Respect project structure** - analyze file-by-file deterministically
 
 ## Important Limitations
 

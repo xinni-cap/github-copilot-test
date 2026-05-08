@@ -40,12 +40,13 @@ if submitted:
 
     st.success(f"Result: {num1} {symbol} {num2} = {result}")
 
-    if result > 0:
-        result_sign = "positive"
-    elif result < 0:
-        result_sign = "negative"
-    else:
+    zero_tolerance = 1e-10
+    if abs(result) < zero_tolerance:
         result_sign = "zero"
+    elif result > 0:
+        result_sign = "positive"
+    else:
+        result_sign = "negative"
 
     st.info(f"Insight: The result is {result_sign}.")
 

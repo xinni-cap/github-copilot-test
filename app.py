@@ -40,6 +40,15 @@ if submitted:
 
     st.success(f"Result: {num1} {symbol} {num2} = {result}")
 
+    if result > 0:
+        result_sign = "positive"
+    elif result < 0:
+        result_sign = "negative"
+    else:
+        result_sign = "zero"
+
+    st.info(f"Insight: The result is {result_sign}.")
+
     with st.expander("Computation details"):
         st.write({
             "first_number": num1,

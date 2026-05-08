@@ -1,0 +1,147 @@
+{
+  "project": "Simple Calculator - Streamlit App",
+  "repository": "xinni-cap/github-copilot-test",
+  "analysis_date": "2025-07-14",
+  "source_files": [
+    {
+      "file": "app.py",
+      "lines": 50,
+      "language": "Python 3",
+      "framework": "Streamlit >= 1.40.0",
+      "type": "Single-file web application"
+    },
+    {
+      "file": "requirements.txt",
+      "lines": 1,
+      "type": "Dependency manifest"
+    },
+    {
+      "file": "README.md",
+      "lines": 18,
+      "type": "Project documentation"
+    }
+  ],
+  "application_overview": {
+    "name": "Simple Calculator",
+    "description": "A web-based arithmetic calculator with Add, Subtract, Multiply, and Divide operations built with Streamlit",
+    "architecture_pattern": "Single-file procedural Streamlit application",
+    "layers": ["Presentation (Streamlit widgets)", "Business Logic (inline if/elif)"],
+    "persistence": "None - fully stateless",
+    "deployment": "Streamlit dev server (Tornado) on localhost:8501 via WebSocket"
+  },
+  "quality_scores": {
+    "overall": 72,
+    "readability": 90,
+    "maintainability": 80,
+    "testability": 40,
+    "security": 70,
+    "performance": 80,
+    "documentation": 30
+  },
+  "code_metrics": {
+    "total_lines": 50,
+    "import_statements": 1,
+    "conditional_branches": 6,
+    "ui_widget_calls": 10,
+    "error_handling_blocks": 1,
+    "functions_defined": 0,
+    "classes_defined": 0,
+    "type_annotations": 0,
+    "docstrings": 0,
+    "inline_comments": 0
+  },
+  "dependencies": [
+    {
+      "name": "streamlit",
+      "version_constraint": ">=1.40.0",
+      "purpose": "Web UI framework",
+      "usage": "All UI rendering, form handling, widget creation"
+    }
+  ],
+  "operations_supported": ["Add", "Subtract", "Multiply", "Divide"],
+  "ui_components": [
+    "st.set_page_config - page title, icon, layout",
+    "st.title - application heading",
+    "st.caption - subtitle/description",
+    "st.form - batched input form container",
+    "st.columns - two-column layout for number inputs",
+    "st.number_input - numeric input (x2, float, 6dp format)",
+    "st.selectbox - operation selection dropdown",
+    "st.form_submit_button - Calculate trigger button",
+    "st.error - division by zero error display",
+    "st.stop - execution halt on error",
+    "st.success - result display banner",
+    "st.expander - collapsible computation details panel",
+    "st.write - structured detail output (dict)"
+  ],
+  "technical_debt": {
+    "severity": "Medium",
+    "items": [
+      "Zero unit test coverage - all logic embedded in UI flow",
+      "No function/class decomposition - calculation logic is not callable",
+      "Float precision uses IEEE 754 not decimal.Decimal",
+      "No type annotations",
+      "No session state - no calculation history",
+      "README covers only 22% of features",
+      "No deployment configuration (no Dockerfile, no CI/CD)"
+    ]
+  },
+  "issues": [
+    {
+      "id": "ISSUE-001",
+      "severity": "critical",
+      "category": "testability",
+      "description": "No unit tests exist for any code path",
+      "recommendation": "Extract calculate() function and add pytest test suite"
+    },
+    {
+      "id": "ISSUE-002",
+      "severity": "high",
+      "category": "architecture",
+      "description": "Business logic tightly coupled to UI presentation layer",
+      "recommendation": "Separate calculation engine from Streamlit UI layer"
+    },
+    {
+      "id": "ISSUE-003",
+      "severity": "medium",
+      "category": "correctness",
+      "description": "IEEE 754 float arithmetic produces silent precision errors (e.g., 0.1+0.2 != 0.3)",
+      "recommendation": "Use decimal.Decimal for arithmetic operations"
+    },
+    {
+      "id": "ISSUE-004",
+      "severity": "medium",
+      "category": "documentation",
+      "description": "README documents only 4 of 18 identifiable code features",
+      "recommendation": "Rewrite README with features, prerequisites, usage examples, troubleshooting"
+    },
+    {
+      "id": "ISSUE-005",
+      "severity": "low",
+      "category": "maintainability",
+      "description": "No type annotations on any variables or function signatures",
+      "recommendation": "Add Python type hints, configure mypy for static analysis"
+    },
+    {
+      "id": "ISSUE-006",
+      "severity": "low",
+      "category": "usability",
+      "description": "No calculation history - each result is ephemeral",
+      "recommendation": "Implement st.session_state to maintain session history"
+    }
+  ],
+  "strengths": [
+    "Exceptional readability - 50 lines, immediately comprehensible",
+    "Correct division-by-zero handling with st.error() + st.stop()",
+    "Efficient st.form batching prevents per-keystroke re-runs",
+    "Zero external dependencies beyond Streamlit",
+    "Minimal attack surface - no API calls, no file I/O, no database",
+    "Clean two-column layout with computation details expander"
+  ],
+  "overall_health": {
+    "score": 6.0,
+    "out_of": 10,
+    "classification": "Moderate - Prototype-grade, not production-grade",
+    "verdict": "Clean, well-written, functionally correct micro-application. Lacks tests, documentation, and structural foundations for safe evolution."
+  }
+}

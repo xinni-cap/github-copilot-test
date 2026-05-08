@@ -1,5 +1,7 @@
 import streamlit as st
 
+FLOATING_POINT_ZERO_TOLERANCE = 1e-10
+
 st.set_page_config(page_title="Calculator", page_icon="🧮", layout="centered")
 
 st.title("Simple Calculator")
@@ -40,8 +42,7 @@ if submitted:
 
     st.success(f"Result: {num1} {symbol} {num2} = {result}")
 
-    zero_tolerance = 1e-10
-    if abs(result) < zero_tolerance:
+    if abs(result) < FLOATING_POINT_ZERO_TOLERANCE:
         result_sign = "zero"
     elif result > 0:
         result_sign = "positive"

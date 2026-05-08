@@ -1,0 +1,1691 @@
+{
+  "file_path": "app.py",
+  "language": "Python",
+  "python_ast_spec": "CPython 3.x (ast module grammar — PEP 617)",
+  "ast_version": "1.0",
+  "source_lines": 144,
+  "executable_lines": 34,
+  "blank_lines": 10,
+  "encoding": "utf-8",
+  "framework": "Streamlit >= 1.40.0",
+  "execution_model": "Streamlit top-to-bottom reactive re-run on every user interaction",
+
+  "code_sections": [
+    { "id": "SECTION_1", "name": "Page Configuration",      "lines": [46, 46],   "tag": "SECTION_1_PAGE_CONFIG" },
+    { "id": "SECTION_2", "name": "Page Header",             "lines": [52, 53],   "tag": "SECTION_2_PAGE_HEADER" },
+    { "id": "SECTION_3", "name": "Input Form",              "lines": [62, 87],   "tag": "SECTION_3_INPUT_FORM" },
+    { "id": "SECTION_4", "name": "Computation Engine",      "lines": [95, 125],  "tag": "SECTION_4_COMPUTATION_ENGINE" },
+    { "id": "SECTION_5", "name": "Result Display",          "lines": [133, 144], "tag": "SECTION_5_RESULT_DISPLAY" }
+  ],
+
+  "module_docstring": {
+    "ast_node": "Expr > Constant",
+    "value_type": "str",
+    "lines": { "start": 1, "end": 37 },
+    "summary": "Simple Calculator — Streamlit Web Application",
+    "full_text": "Simple Calculator — Streamlit Web Application\n==============================================\n\nPurpose\n-------\nA single-page, browser-based calculator that performs the four basic arithmetic\noperations (addition, subtraction, multiplication, division) on two floating-point\nnumbers entered by the user.\n\nUsage\n-----\n    streamlit run app.py\n\nThen open the URL printed in the terminal (default: http://localhost:8501).\n\nDependencies\n------------\n    streamlit >= 1.40.0   -- reactive web-UI framework (install via requirements.txt)\n\nArchitecture\n------------\nThis application follows Streamlit's top-to-bottom reactive execution model: the\nentire script re-runs on every user interaction.  A ``st.form`` context is used to\nbatch all inputs so that the calculation is triggered only when the user clicks the\n\"Calculate\" button, not on every keystroke.\n\nBusiness Rules\n--------------\nBR-001  Division by zero is not permitted; an error is shown and execution halts.\nBR-002  Numeric inputs are captured with up to 6 decimal places of precision.\nBR-003  Exactly four operations are supported: Add, Subtract, Multiply, Divide.\nBR-004  Addition is the default pre-selected operation.\nBR-005  The result is displayed as a human-readable formatted equation.\nBR-006  Computation details are available on demand in a collapsible panel.\nBR-007  Calculation is triggered only on explicit form submission.",
+    "documented_business_rules": [
+      { "id": "BR-001", "text": "Division by zero is not permitted; an error is shown and execution halts." },
+      { "id": "BR-002", "text": "Numeric inputs are captured with up to 6 decimal places of precision." },
+      { "id": "BR-003", "text": "Exactly four operations are supported: Add, Subtract, Multiply, Divide." },
+      { "id": "BR-004", "text": "Addition is the default pre-selected operation." },
+      { "id": "BR-005", "text": "The result is displayed as a human-readable formatted equation." },
+      { "id": "BR-006", "text": "Computation details are available on demand in a collapsible panel." },
+      { "id": "BR-007", "text": "Calculation is triggered only on explicit form submission." }
+    ]
+  },
+
+  "imports": [
+    {
+      "node_id": "IMP_01",
+      "ast_node": "Import",
+      "line": 39,
+      "end_line": 39,
+      "module": "streamlit",
+      "alias": "st",
+      "qualified_as": "st",
+      "category": "third_party",
+      "version_constraint": ">=1.40.0",
+      "purpose": "Web UI framework — page config, layout, widgets, reactive state management, and display rendering"
+    }
+  ],
+
+  "module": {
+    "ast_node": "Module",
+    "total_top_level_statements": 7,
+    "body": [
+      {
+        "node_id": "S1",
+        "ast_node": "Expr",
+        "line": 1,
+        "end_line": 37,
+        "section_tag": "MODULE_DOCSTRING",
+        "nesting_depth": 0,
+        "value": {
+          "ast_node": "Constant",
+          "value_type": "str",
+          "description": "Module-level docstring describing purpose, usage, dependencies, architecture and business rules"
+        }
+      },
+      {
+        "node_id": "S2",
+        "ast_node": "Import",
+        "line": 39,
+        "end_line": 39,
+        "section_tag": "IMPORTS",
+        "nesting_depth": 0,
+        "names": [
+          { "name": "streamlit", "asname": "st" }
+        ]
+      },
+      {
+        "node_id": "S3",
+        "ast_node": "Expr",
+        "line": 46,
+        "end_line": 46,
+        "section_tag": "SECTION_1_PAGE_CONFIG",
+        "nesting_depth": 0,
+        "value": {
+          "ast_node": "Call",
+          "func": {
+            "ast_node": "Attribute",
+            "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+            "attr": "set_page_config",
+            "ctx": "Load"
+          },
+          "args": [],
+          "keywords": [
+            { "arg": "page_title", "value": { "ast_node": "Constant", "value": "Calculator",  "value_type": "str" } },
+            { "arg": "page_icon",  "value": { "ast_node": "Constant", "value": "\ud83e\uddf2",         "value_type": "str" } },
+            { "arg": "layout",     "value": { "ast_node": "Constant", "value": "centered",  "value_type": "str" } }
+          ]
+        }
+      },
+      {
+        "node_id": "S4",
+        "ast_node": "Expr",
+        "line": 52,
+        "end_line": 52,
+        "section_tag": "SECTION_2_PAGE_HEADER",
+        "nesting_depth": 0,
+        "value": {
+          "ast_node": "Call",
+          "func": {
+            "ast_node": "Attribute",
+            "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+            "attr": "title",
+            "ctx": "Load"
+          },
+          "args": [ { "ast_node": "Constant", "value": "Simple Calculator", "value_type": "str" } ],
+          "keywords": []
+        }
+      },
+      {
+        "node_id": "S5",
+        "ast_node": "Expr",
+        "line": 53,
+        "end_line": 53,
+        "section_tag": "SECTION_2_PAGE_HEADER",
+        "nesting_depth": 0,
+        "value": {
+          "ast_node": "Call",
+          "func": {
+            "ast_node": "Attribute",
+            "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+            "attr": "caption",
+            "ctx": "Load"
+          },
+          "args": [ { "ast_node": "Constant", "value": "Perform quick arithmetic with a clean Streamlit UI.", "value_type": "str" } ],
+          "keywords": []
+        }
+      },
+      {
+        "node_id": "S6",
+        "ast_node": "With",
+        "line": 62,
+        "end_line": 87,
+        "section_tag": "SECTION_3_INPUT_FORM",
+        "nesting_depth": 0,
+        "purpose": "Groups all input widgets inside a Streamlit Form so the script does not re-run on every keystroke. Calculation is deferred until the submit button is clicked (BR-007).",
+        "items": [
+          {
+            "context_expr": {
+              "ast_node": "Call",
+              "func": {
+                "ast_node": "Attribute",
+                "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                "attr": "form",
+                "ctx": "Load"
+              },
+              "args": [ { "ast_node": "Constant", "value": "calculator_form", "value_type": "str" } ],
+              "keywords": []
+            },
+            "optional_vars": null,
+            "as_clause": null
+          }
+        ],
+        "body": [
+          {
+            "node_id": "S6.1",
+            "ast_node": "Assign",
+            "line": 64,
+            "end_line": 64,
+            "nesting_depth": 1,
+            "targets": [
+              {
+                "ast_node": "Tuple",
+                "elts": [
+                  { "ast_node": "Name", "id": "col1", "ctx": "Store" },
+                  { "ast_node": "Name", "id": "col2", "ctx": "Store" }
+                ],
+                "ctx": "Store",
+                "assignment_style": "tuple_unpack"
+              }
+            ],
+            "value": {
+              "ast_node": "Call",
+              "func": {
+                "ast_node": "Attribute",
+                "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                "attr": "columns",
+                "ctx": "Load"
+              },
+              "args": [ { "ast_node": "Constant", "value": 2, "value_type": "int" } ],
+              "keywords": [],
+              "return_type": "tuple[DeltaGenerator, DeltaGenerator]"
+            }
+          },
+          {
+            "node_id": "S6.2",
+            "ast_node": "With",
+            "line": 66,
+            "end_line": 69,
+            "nesting_depth": 1,
+            "purpose": "Renders the first number input inside the left column",
+            "items": [
+              {
+                "context_expr": { "ast_node": "Name", "id": "col1", "ctx": "Load" },
+                "optional_vars": null,
+                "as_clause": null
+              }
+            ],
+            "body": [
+              {
+                "node_id": "S6.2.1",
+                "ast_node": "Assign",
+                "line": 69,
+                "end_line": 69,
+                "nesting_depth": 2,
+                "targets": [ { "ast_node": "Name", "id": "num1", "ctx": "Store" } ],
+                "value": {
+                  "ast_node": "Call",
+                  "func": {
+                    "ast_node": "Attribute",
+                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                    "attr": "number_input",
+                    "ctx": "Load"
+                  },
+                  "args": [ { "ast_node": "Constant", "value": "First number", "value_type": "str" } ],
+                  "keywords": [
+                    { "arg": "value",  "value": { "ast_node": "Constant", "value": 0.0,    "value_type": "float" } },
+                    { "arg": "format", "value": { "ast_node": "Constant", "value": "%.6f", "value_type": "str"   } }
+                  ],
+                  "return_type": "float",
+                  "business_rule": "BR-002"
+                }
+              }
+            ]
+          },
+          {
+            "node_id": "S6.3",
+            "ast_node": "With",
+            "line": 70,
+            "end_line": 73,
+            "nesting_depth": 1,
+            "purpose": "Renders the second number input inside the right column",
+            "items": [
+              {
+                "context_expr": { "ast_node": "Name", "id": "col2", "ctx": "Load" },
+                "optional_vars": null,
+                "as_clause": null
+              }
+            ],
+            "body": [
+              {
+                "node_id": "S6.3.1",
+                "ast_node": "Assign",
+                "line": 73,
+                "end_line": 73,
+                "nesting_depth": 2,
+                "targets": [ { "ast_node": "Name", "id": "num2", "ctx": "Store" } ],
+                "value": {
+                  "ast_node": "Call",
+                  "func": {
+                    "ast_node": "Attribute",
+                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                    "attr": "number_input",
+                    "ctx": "Load"
+                  },
+                  "args": [ { "ast_node": "Constant", "value": "Second number", "value_type": "str" } ],
+                  "keywords": [
+                    { "arg": "value",  "value": { "ast_node": "Constant", "value": 0.0,    "value_type": "float" } },
+                    { "arg": "format", "value": { "ast_node": "Constant", "value": "%.6f", "value_type": "str"   } }
+                  ],
+                  "return_type": "float",
+                  "business_rule": "BR-002",
+                  "note": "Also serves as the divisor when operation == 'Divide'; must not be zero (BR-001)"
+                }
+              }
+            ]
+          },
+          {
+            "node_id": "S6.4",
+            "ast_node": "Assign",
+            "line": 78,
+            "end_line": 82,
+            "nesting_depth": 1,
+            "targets": [ { "ast_node": "Name", "id": "operation", "ctx": "Store" } ],
+            "value": {
+              "ast_node": "Call",
+              "func": {
+                "ast_node": "Attribute",
+                "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                "attr": "selectbox",
+                "ctx": "Load"
+              },
+              "args": [
+                { "ast_node": "Constant", "value": "Operation", "value_type": "str" },
+                {
+                  "ast_node": "Tuple",
+                  "elts": [
+                    { "ast_node": "Constant", "value": "Add",      "value_type": "str" },
+                    { "ast_node": "Constant", "value": "Subtract", "value_type": "str" },
+                    { "ast_node": "Constant", "value": "Multiply", "value_type": "str" },
+                    { "ast_node": "Constant", "value": "Divide",   "value_type": "str" }
+                  ],
+                  "ctx": "Load"
+                }
+              ],
+              "keywords": [
+                { "arg": "index", "value": { "ast_node": "Constant", "value": 0, "value_type": "int" } }
+              ],
+              "return_type": "str",
+              "business_rule": "BR-003 BR-004",
+              "note": "Constrained to exactly four valid values; index=0 pre-selects 'Add'"
+            }
+          },
+          {
+            "node_id": "S6.5",
+            "ast_node": "Assign",
+            "line": 87,
+            "end_line": 87,
+            "nesting_depth": 1,
+            "targets": [ { "ast_node": "Name", "id": "submitted", "ctx": "Store" } ],
+            "value": {
+              "ast_node": "Call",
+              "func": {
+                "ast_node": "Attribute",
+                "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                "attr": "form_submit_button",
+                "ctx": "Load"
+              },
+              "args": [ { "ast_node": "Constant", "value": "Calculate", "value_type": "str" } ],
+              "keywords": [],
+              "return_type": "bool",
+              "business_rule": "BR-007",
+              "note": "True only during the re-run immediately following a button click; False on all other re-runs"
+            }
+          }
+        ]
+      },
+      {
+        "node_id": "S7",
+        "ast_node": "If",
+        "line": 95,
+        "end_line": 144,
+        "section_tag": "SECTION_4_COMPUTATION_ENGINE + SECTION_5_RESULT_DISPLAY",
+        "nesting_depth": 0,
+        "purpose": "Top-level computation gate — entire arithmetic engine and result display is skipped if form has not been submitted",
+        "test": {
+          "ast_node": "Name",
+          "id": "submitted",
+          "ctx": "Load",
+          "inferred_type": "bool",
+          "semantic": "Form submission gate (BR-007)"
+        },
+        "body": [
+          {
+            "node_id": "S7.1",
+            "ast_node": "If",
+            "line": 96,
+            "end_line": 125,
+            "nesting_depth": 1,
+            "section_tag": "OPERATION_ROUTING",
+            "purpose": "Routes execution to the correct arithmetic branch based on selected operation (BR-003)",
+            "test": {
+              "ast_node": "Compare",
+              "left": { "ast_node": "Name", "id": "operation", "ctx": "Load", "inferred_type": "str" },
+              "ops": [ { "ast_node": "Eq", "symbol": "==" } ],
+              "comparators": [ { "ast_node": "Constant", "value": "Add", "value_type": "str" } ]
+            },
+            "body": [
+              {
+                "node_id": "S7.1.1",
+                "ast_node": "Assign",
+                "line": 97,
+                "end_line": 97,
+                "nesting_depth": 2,
+                "targets": [ { "ast_node": "Name", "id": "result", "ctx": "Store" } ],
+                "value": {
+                  "ast_node": "BinOp",
+                  "left":  { "ast_node": "Name", "id": "num1", "ctx": "Load", "inferred_type": "float" },
+                  "op":    { "ast_node": "Add",  "symbol": "+", "python_operator": "Add" },
+                  "right": { "ast_node": "Name", "id": "num2", "ctx": "Load", "inferred_type": "float" },
+                  "inferred_result_type": "float"
+                }
+              },
+              {
+                "node_id": "S7.1.2",
+                "ast_node": "Assign",
+                "line": 98,
+                "end_line": 98,
+                "nesting_depth": 2,
+                "targets": [ { "ast_node": "Name", "id": "symbol", "ctx": "Store" } ],
+                "value": { "ast_node": "Constant", "value": "+", "value_type": "str" }
+              }
+            ],
+            "orelse": [
+              {
+                "node_id": "S7.2",
+                "ast_node": "If",
+                "line": 99,
+                "end_line": 125,
+                "is_elif": true,
+                "nesting_depth": 1,
+                "test": {
+                  "ast_node": "Compare",
+                  "left": { "ast_node": "Name", "id": "operation", "ctx": "Load", "inferred_type": "str" },
+                  "ops": [ { "ast_node": "Eq", "symbol": "==" } ],
+                  "comparators": [ { "ast_node": "Constant", "value": "Subtract", "value_type": "str" } ]
+                },
+                "body": [
+                  {
+                    "node_id": "S7.2.1",
+                    "ast_node": "Assign",
+                    "line": 100,
+                    "end_line": 100,
+                    "nesting_depth": 2,
+                    "targets": [ { "ast_node": "Name", "id": "result", "ctx": "Store" } ],
+                    "value": {
+                      "ast_node": "BinOp",
+                      "left":  { "ast_node": "Name", "id": "num1", "ctx": "Load", "inferred_type": "float" },
+                      "op":    { "ast_node": "Sub",  "symbol": "-", "python_operator": "Sub" },
+                      "right": { "ast_node": "Name", "id": "num2", "ctx": "Load", "inferred_type": "float" },
+                      "inferred_result_type": "float"
+                    }
+                  },
+                  {
+                    "node_id": "S7.2.2",
+                    "ast_node": "Assign",
+                    "line": 101,
+                    "end_line": 101,
+                    "nesting_depth": 2,
+                    "targets": [ { "ast_node": "Name", "id": "symbol", "ctx": "Store" } ],
+                    "value": { "ast_node": "Constant", "value": "-", "value_type": "str" }
+                  }
+                ],
+                "orelse": [
+                  {
+                    "node_id": "S7.3",
+                    "ast_node": "If",
+                    "line": 102,
+                    "end_line": 125,
+                    "is_elif": true,
+                    "nesting_depth": 1,
+                    "test": {
+                      "ast_node": "Compare",
+                      "left": { "ast_node": "Name", "id": "operation", "ctx": "Load", "inferred_type": "str" },
+                      "ops": [ { "ast_node": "Eq", "symbol": "==" } ],
+                      "comparators": [ { "ast_node": "Constant", "value": "Multiply", "value_type": "str" } ]
+                    },
+                    "body": [
+                      {
+                        "node_id": "S7.3.1",
+                        "ast_node": "Assign",
+                        "line": 103,
+                        "end_line": 103,
+                        "nesting_depth": 2,
+                        "targets": [ { "ast_node": "Name", "id": "result", "ctx": "Store" } ],
+                        "value": {
+                          "ast_node": "BinOp",
+                          "left":  { "ast_node": "Name", "id": "num1", "ctx": "Load", "inferred_type": "float" },
+                          "op":    { "ast_node": "Mult", "symbol": "*", "python_operator": "Mult" },
+                          "right": { "ast_node": "Name", "id": "num2", "ctx": "Load", "inferred_type": "float" },
+                          "inferred_result_type": "float"
+                        }
+                      },
+                      {
+                        "node_id": "S7.3.2",
+                        "ast_node": "Assign",
+                        "line": 104,
+                        "end_line": 104,
+                        "nesting_depth": 2,
+                        "targets": [ { "ast_node": "Name", "id": "symbol", "ctx": "Store" } ],
+                        "value": { "ast_node": "Constant", "value": "\u00d7", "value_type": "str" }
+                      }
+                    ],
+                    "orelse": [
+                      {
+                        "node_id": "S7.4",
+                        "ast_node": "ElseBranch",
+                        "line": 105,
+                        "end_line": 125,
+                        "is_else": true,
+                        "nesting_depth": 1,
+                        "implied_condition": "operation == 'Divide' (exhaustive — selectbox constrains input to exactly 4 values)",
+                        "business_rule": "BR-001",
+                        "body": [
+                          {
+                            "node_id": "S7.4.1",
+                            "ast_node": "Assign",
+                            "line": 109,
+                            "end_line": 109,
+                            "nesting_depth": 2,
+                            "purpose": "Symbol assigned before the guard so it is available for any future error-path messages",
+                            "targets": [ { "ast_node": "Name", "id": "symbol", "ctx": "Store" } ],
+                            "value": { "ast_node": "Constant", "value": "\u00f7", "value_type": "str" }
+                          },
+                          {
+                            "node_id": "S7.4.2",
+                            "ast_node": "If",
+                            "line": 121,
+                            "end_line": 123,
+                            "nesting_depth": 2,
+                            "business_rule": "BR-001",
+                            "comment": "Division-by-Zero Guard — detect and surface error instead of raising ZeroDivisionError",
+                            "test": {
+                              "ast_node": "Compare",
+                              "left": { "ast_node": "Name", "id": "num2", "ctx": "Load", "inferred_type": "float" },
+                              "ops": [ { "ast_node": "Eq", "symbol": "==" } ],
+                              "comparators": [ { "ast_node": "Constant", "value": 0, "value_type": "int" } ]
+                            },
+                            "body": [
+                              {
+                                "node_id": "S7.4.2.1",
+                                "ast_node": "Expr",
+                                "line": 122,
+                                "end_line": 122,
+                                "nesting_depth": 3,
+                                "value": {
+                                  "ast_node": "Call",
+                                  "func": {
+                                    "ast_node": "Attribute",
+                                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                                    "attr": "error",
+                                    "ctx": "Load"
+                                  },
+                                  "args": [ { "ast_node": "Constant", "value": "Division by zero is not allowed.", "value_type": "str" } ],
+                                  "keywords": [],
+                                  "side_effect": "Renders a red error banner in the Streamlit UI"
+                                }
+                              },
+                              {
+                                "node_id": "S7.4.2.2",
+                                "ast_node": "Expr",
+                                "line": 123,
+                                "end_line": 123,
+                                "nesting_depth": 3,
+                                "comment": "Raises streamlit.runtime.scriptrunner.StopException — halts all further script execution for this re-run",
+                                "value": {
+                                  "ast_node": "Call",
+                                  "func": {
+                                    "ast_node": "Attribute",
+                                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                                    "attr": "stop",
+                                    "ctx": "Load"
+                                  },
+                                  "args": [],
+                                  "keywords": [],
+                                  "raises": "streamlit.runtime.scriptrunner.StopException",
+                                  "side_effect": "Immediately terminates script execution; no statements after this point execute in this re-run"
+                                }
+                              }
+                            ],
+                            "orelse": []
+                          },
+                          {
+                            "node_id": "S7.4.3",
+                            "ast_node": "Assign",
+                            "line": 125,
+                            "end_line": 125,
+                            "nesting_depth": 2,
+                            "note": "Only reachable when num2 != 0 (the guard at S7.4.2 calls st.stop() on the zero path)",
+                            "targets": [ { "ast_node": "Name", "id": "result", "ctx": "Store" } ],
+                            "value": {
+                              "ast_node": "BinOp",
+                              "left":  { "ast_node": "Name", "id": "num1", "ctx": "Load", "inferred_type": "float" },
+                              "op":    { "ast_node": "Div",  "symbol": "/", "python_operator": "Div" },
+                              "right": { "ast_node": "Name", "id": "num2", "ctx": "Load", "inferred_type": "float" },
+                              "inferred_result_type": "float",
+                              "exception_if_guard_bypassed": "ZeroDivisionError"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "node_id": "S7.5",
+            "ast_node": "Expr",
+            "line": 133,
+            "end_line": 133,
+            "nesting_depth": 1,
+            "section_tag": "SECTION_5_RESULT_DISPLAY",
+            "business_rule": "BR-005",
+            "value": {
+              "ast_node": "Call",
+              "func": {
+                "ast_node": "Attribute",
+                "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                "attr": "success",
+                "ctx": "Load"
+              },
+              "args": [
+                {
+                  "ast_node": "JoinedStr",
+                  "python_syntax": "f-string",
+                  "template": "f\"Result: {num1} {symbol} {num2} = {result}\"",
+                  "rendered_example": "Result: 3.5 + 1.25 = 4.75",
+                  "values": [
+                    { "ast_node": "Constant",       "value": "Result: ",  "value_type": "str" },
+                    { "ast_node": "FormattedValue",  "value": { "ast_node": "Name", "id": "num1"   }, "conversion": -1, "format_spec": null },
+                    { "ast_node": "Constant",        "value": " ",         "value_type": "str" },
+                    { "ast_node": "FormattedValue",  "value": { "ast_node": "Name", "id": "symbol" }, "conversion": -1, "format_spec": null },
+                    { "ast_node": "Constant",        "value": " ",         "value_type": "str" },
+                    { "ast_node": "FormattedValue",  "value": { "ast_node": "Name", "id": "num2"   }, "conversion": -1, "format_spec": null },
+                    { "ast_node": "Constant",        "value": " = ",       "value_type": "str" },
+                    { "ast_node": "FormattedValue",  "value": { "ast_node": "Name", "id": "result" }, "conversion": -1, "format_spec": null }
+                  ]
+                }
+              ],
+              "keywords": [],
+              "side_effect": "Renders a green success banner in the Streamlit UI"
+            }
+          },
+          {
+            "node_id": "S7.6",
+            "ast_node": "With",
+            "line": 138,
+            "end_line": 144,
+            "nesting_depth": 1,
+            "section_tag": "SECTION_5_RESULT_DISPLAY_EXPANDER",
+            "business_rule": "BR-006",
+            "purpose": "Collapsible panel exposing the raw computation dictionary for transparency and debugging",
+            "items": [
+              {
+                "context_expr": {
+                  "ast_node": "Call",
+                  "func": {
+                    "ast_node": "Attribute",
+                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                    "attr": "expander",
+                    "ctx": "Load"
+                  },
+                  "args": [ { "ast_node": "Constant", "value": "Computation details", "value_type": "str" } ],
+                  "keywords": []
+                },
+                "optional_vars": null,
+                "as_clause": null
+              }
+            ],
+            "body": [
+              {
+                "node_id": "S7.6.1",
+                "ast_node": "Expr",
+                "line": 139,
+                "end_line": 144,
+                "nesting_depth": 2,
+                "value": {
+                  "ast_node": "Call",
+                  "func": {
+                    "ast_node": "Attribute",
+                    "value": { "ast_node": "Name", "id": "st", "ctx": "Load" },
+                    "attr": "write",
+                    "ctx": "Load"
+                  },
+                  "args": [
+                    {
+                      "ast_node": "Dict",
+                      "keys": [
+                        { "ast_node": "Constant", "value": "first_number",  "value_type": "str" },
+                        { "ast_node": "Constant", "value": "second_number", "value_type": "str" },
+                        { "ast_node": "Constant", "value": "operation",     "value_type": "str" },
+                        { "ast_node": "Constant", "value": "result",        "value_type": "str" }
+                      ],
+                      "values": [
+                        { "ast_node": "Name", "id": "num1",      "ctx": "Load", "inferred_type": "float" },
+                        { "ast_node": "Name", "id": "num2",      "ctx": "Load", "inferred_type": "float" },
+                        { "ast_node": "Name", "id": "operation", "ctx": "Load", "inferred_type": "str"   },
+                        { "ast_node": "Name", "id": "result",    "ctx": "Load", "inferred_type": "float" }
+                      ]
+                    }
+                  ],
+                  "keywords": [],
+                  "side_effect": "Renders a formatted dictionary inside the expander panel"
+                }
+              }
+            ]
+          }
+        ],
+        "orelse": []
+      }
+    ]
+  },
+
+  "variable_assignments": [
+    {
+      "assignment_id": "VA_01",
+      "node_id": "S6.1",
+      "line": 64,
+      "names": ["col1", "col2"],
+      "assignment_style": "tuple_unpack",
+      "rhs_type": "Call",
+      "rhs_call": "st.columns(2)",
+      "inferred_types": ["DeltaGenerator", "DeltaGenerator"],
+      "scope": "module",
+      "purpose": "Splits the form into two equal-width layout columns",
+      "used_as": "context_manager",
+      "used_at_lines": [66, 70]
+    },
+    {
+      "assignment_id": "VA_02",
+      "node_id": "S6.2.1",
+      "line": 69,
+      "names": ["num1"],
+      "assignment_style": "simple",
+      "rhs_type": "Call",
+      "rhs_call": "st.number_input(\"First number\", value=0.0, format=\"%.6f\")",
+      "inferred_type": "float",
+      "scope": "module",
+      "default_value": 0.0,
+      "format": "%.6f",
+      "precision_digits": 6,
+      "purpose": "First arithmetic operand (left-hand side of expression)",
+      "used_at_lines": [97, 100, 103, 125, 133, 141],
+      "business_rule": "BR-002"
+    },
+    {
+      "assignment_id": "VA_03",
+      "node_id": "S6.3.1",
+      "line": 73,
+      "names": ["num2"],
+      "assignment_style": "simple",
+      "rhs_type": "Call",
+      "rhs_call": "st.number_input(\"Second number\", value=0.0, format=\"%.6f\")",
+      "inferred_type": "float",
+      "scope": "module",
+      "default_value": 0.0,
+      "format": "%.6f",
+      "precision_digits": 6,
+      "purpose": "Second arithmetic operand; also the divisor in division",
+      "used_at_lines": [97, 100, 103, 121, 125, 133, 142],
+      "business_rule": "BR-002"
+    },
+    {
+      "assignment_id": "VA_04",
+      "node_id": "S6.4",
+      "line": 78,
+      "names": ["operation"],
+      "assignment_style": "simple",
+      "rhs_type": "Call",
+      "rhs_call": "st.selectbox(\"Operation\", (\"Add\",\"Subtract\",\"Multiply\",\"Divide\"), index=0)",
+      "inferred_type": "str",
+      "scope": "module",
+      "allowed_values": ["Add", "Subtract", "Multiply", "Divide"],
+      "default_value": "Add",
+      "purpose": "Controls which arithmetic branch executes in the computation engine",
+      "used_at_lines": [96, 99, 102, 143],
+      "business_rule": "BR-003 BR-004"
+    },
+    {
+      "assignment_id": "VA_05",
+      "node_id": "S6.5",
+      "line": 87,
+      "names": ["submitted"],
+      "assignment_style": "simple",
+      "rhs_type": "Call",
+      "rhs_call": "st.form_submit_button(\"Calculate\")",
+      "inferred_type": "bool",
+      "scope": "module",
+      "purpose": "Gate variable — True only on the re-run triggered by the Calculate button click",
+      "used_at_lines": [95],
+      "business_rule": "BR-007"
+    },
+    {
+      "assignment_id": "VA_06",
+      "node_id": "S7.1.1",
+      "line": 97,
+      "names": ["result"],
+      "assignment_style": "simple",
+      "rhs_type": "BinOp",
+      "rhs_expression": "num1 + num2",
+      "inferred_type": "float",
+      "scope": "module",
+      "branch": "Add",
+      "condition": "submitted == True AND operation == 'Add'",
+      "used_at_lines": [133, 144]
+    },
+    {
+      "assignment_id": "VA_07",
+      "node_id": "S7.1.2",
+      "line": 98,
+      "names": ["symbol"],
+      "assignment_style": "simple",
+      "rhs_type": "Constant",
+      "rhs_value": "+",
+      "inferred_type": "str",
+      "scope": "module",
+      "branch": "Add",
+      "condition": "submitted == True AND operation == 'Add'",
+      "used_at_lines": [133]
+    },
+    {
+      "assignment_id": "VA_08",
+      "node_id": "S7.2.1",
+      "line": 100,
+      "names": ["result"],
+      "assignment_style": "simple",
+      "rhs_type": "BinOp",
+      "rhs_expression": "num1 - num2",
+      "inferred_type": "float",
+      "scope": "module",
+      "branch": "Subtract",
+      "condition": "submitted == True AND operation == 'Subtract'",
+      "used_at_lines": [133, 144]
+    },
+    {
+      "assignment_id": "VA_09",
+      "node_id": "S7.2.2",
+      "line": 101,
+      "names": ["symbol"],
+      "assignment_style": "simple",
+      "rhs_type": "Constant",
+      "rhs_value": "-",
+      "inferred_type": "str",
+      "scope": "module",
+      "branch": "Subtract",
+      "condition": "submitted == True AND operation == 'Subtract'",
+      "used_at_lines": [133]
+    },
+    {
+      "assignment_id": "VA_10",
+      "node_id": "S7.3.1",
+      "line": 103,
+      "names": ["result"],
+      "assignment_style": "simple",
+      "rhs_type": "BinOp",
+      "rhs_expression": "num1 * num2",
+      "inferred_type": "float",
+      "scope": "module",
+      "branch": "Multiply",
+      "condition": "submitted == True AND operation == 'Multiply'",
+      "used_at_lines": [133, 144]
+    },
+    {
+      "assignment_id": "VA_11",
+      "node_id": "S7.3.2",
+      "line": 104,
+      "names": ["symbol"],
+      "assignment_style": "simple",
+      "rhs_type": "Constant",
+      "rhs_value": "\u00d7",
+      "inferred_type": "str",
+      "scope": "module",
+      "branch": "Multiply",
+      "condition": "submitted == True AND operation == 'Multiply'",
+      "used_at_lines": [133]
+    },
+    {
+      "assignment_id": "VA_12",
+      "node_id": "S7.4.1",
+      "line": 109,
+      "names": ["symbol"],
+      "assignment_style": "simple",
+      "rhs_type": "Constant",
+      "rhs_value": "\u00f7",
+      "inferred_type": "str",
+      "scope": "module",
+      "branch": "Divide",
+      "condition": "submitted == True AND operation not in ('Add','Subtract','Multiply')",
+      "note": "Assigned before the zero-guard so it is available regardless of guard outcome",
+      "used_at_lines": [133]
+    },
+    {
+      "assignment_id": "VA_13",
+      "node_id": "S7.4.3",
+      "line": 125,
+      "names": ["result"],
+      "assignment_style": "simple",
+      "rhs_type": "BinOp",
+      "rhs_expression": "num1 / num2",
+      "inferred_type": "float",
+      "scope": "module",
+      "branch": "Divide",
+      "condition": "submitted == True AND operation == 'Divide' AND num2 != 0",
+      "used_at_lines": [133, 144],
+      "business_rule": "BR-001"
+    }
+  ],
+
+  "control_flow": {
+    "entry_point": { "line": 1, "description": "Module top — sequential execution begins" },
+    "exit_points": [
+      { "node_id": "S7.4.2.2", "line": 123, "type": "early_exit", "mechanism": "st.stop() raises StopException", "condition": "submitted == True AND operation == 'Divide' AND num2 == 0" },
+      { "node_id": "module_end", "line": 144, "type": "normal_exit", "mechanism": "Script reaches end of file" }
+    ],
+    "execution_phases": [
+      {
+        "phase": 1,
+        "name": "Page Setup",
+        "lines": [39, 53],
+        "nodes": ["S2", "S3", "S4", "S5"],
+        "always_executes": true,
+        "description": "Import, page config, title, caption — executed unconditionally on every Streamlit re-run"
+      },
+      {
+        "phase": 2,
+        "name": "Form Rendering",
+        "lines": [62, 87],
+        "nodes": ["S6", "S6.1", "S6.2", "S6.2.1", "S6.3", "S6.3.1", "S6.4", "S6.5"],
+        "always_executes": true,
+        "description": "Input form and all widgets are rendered; values collected from Streamlit session state"
+      },
+      {
+        "phase": 3,
+        "name": "Computation Gate Check",
+        "lines": [95, 95],
+        "nodes": ["S7"],
+        "condition": "submitted == True",
+        "always_executes": true,
+        "branches_to": {
+          "true": "Phase 4 — arithmetic computation",
+          "false": "Phase 7 — script ends (no output rendered)"
+        }
+      },
+      {
+        "phase": 4,
+        "name": "Operation Routing",
+        "lines": [96, 125],
+        "nodes": ["S7.1", "S7.2", "S7.3", "S7.4"],
+        "condition": "submitted == True",
+        "description": "Mutually-exclusive if/elif/elif/else chain selects arithmetic branch",
+        "branches": [
+          { "branch": "Add",      "condition": "operation == 'Add'",                                 "outcome": "result=num1+num2, symbol='+'" },
+          { "branch": "Subtract", "condition": "operation == 'Subtract'",                            "outcome": "result=num1-num2, symbol='-'" },
+          { "branch": "Multiply", "condition": "operation == 'Multiply'",                            "outcome": "result=num1*num2, symbol='x'" },
+          { "branch": "Divide",   "condition": "operation == 'Divide' (implied else)",               "outcome": "symbol='/', then guard check, then result=num1/num2" }
+        ]
+      },
+      {
+        "phase": "4a",
+        "name": "Division-by-Zero Guard",
+        "lines": [121, 123],
+        "nodes": ["S7.4.2", "S7.4.2.1", "S7.4.2.2"],
+        "condition": "submitted == True AND operation == 'Divide' AND num2 == 0",
+        "description": "BR-001 guard: shows error banner and halts execution via st.stop()",
+        "branches": [
+          { "branch": "zero",     "condition": "num2 == 0", "outcome": "st.error + st.stop() — script halts" },
+          { "branch": "nonzero",  "condition": "num2 != 0", "outcome": "falls through to result = num1/num2" }
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Result Display",
+        "lines": [133, 133],
+        "nodes": ["S7.5"],
+        "condition": "submitted == True (and not halted by st.stop())",
+        "description": "Renders green success banner with formatted equation"
+      },
+      {
+        "phase": 6,
+        "name": "Details Expander",
+        "lines": [138, 144],
+        "nodes": ["S7.6", "S7.6.1"],
+        "condition": "submitted == True (and not halted by st.stop())",
+        "description": "Renders collapsible panel with raw computation dictionary"
+      }
+    ]
+  },
+
+  "function_calls": [
+    {
+      "call_id": "FC_01",
+      "node_id": "S3",
+      "line": 46,
+      "receiver": "st",
+      "method": "set_page_config",
+      "full_call": "st.set_page_config(page_title=\"Calculator\", page_icon=\"\ud83e\uddf2\", layout=\"centered\")",
+      "call_type": "keyword-only",
+      "positional_args": [],
+      "keyword_args": {
+        "page_title": "Calculator",
+        "page_icon": "\ud83e\uddf2",
+        "layout": "centered"
+      },
+      "return_type": "None",
+      "side_effect": "Configures browser tab title, favicon and page layout",
+      "section": "SECTION_1_PAGE_CONFIG",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_02",
+      "node_id": "S4",
+      "line": 52,
+      "receiver": "st",
+      "method": "title",
+      "full_call": "st.title(\"Simple Calculator\")",
+      "call_type": "positional",
+      "positional_args": ["Simple Calculator"],
+      "keyword_args": {},
+      "return_type": "None",
+      "side_effect": "Renders an H1 heading in the Streamlit UI",
+      "section": "SECTION_2_PAGE_HEADER",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_03",
+      "node_id": "S5",
+      "line": 53,
+      "receiver": "st",
+      "method": "caption",
+      "full_call": "st.caption(\"Perform quick arithmetic with a clean Streamlit UI.\")",
+      "call_type": "positional",
+      "positional_args": ["Perform quick arithmetic with a clean Streamlit UI."],
+      "keyword_args": {},
+      "return_type": "None",
+      "side_effect": "Renders a muted caption text below the title",
+      "section": "SECTION_2_PAGE_HEADER",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_04",
+      "node_id": "S6",
+      "line": 62,
+      "receiver": "st",
+      "method": "form",
+      "full_call": "st.form(\"calculator_form\")",
+      "call_type": "positional",
+      "positional_args": ["calculator_form"],
+      "keyword_args": {},
+      "return_type": "DeltaGenerator (context manager)",
+      "side_effect": "Creates a form context that batches widget interactions",
+      "used_as": "context_manager",
+      "business_rule": "BR-007",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_05",
+      "node_id": "S6.1",
+      "line": 64,
+      "receiver": "st",
+      "method": "columns",
+      "full_call": "st.columns(2)",
+      "call_type": "positional",
+      "positional_args": [2],
+      "keyword_args": {},
+      "return_type": "tuple[DeltaGenerator, DeltaGenerator]",
+      "side_effect": "Divides the form body into 2 equal-width columns",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_06",
+      "node_id": "S6.2.1",
+      "line": 69,
+      "receiver": "st",
+      "method": "number_input",
+      "full_call": "st.number_input(\"First number\", value=0.0, format=\"%.6f\")",
+      "call_type": "mixed",
+      "positional_args": ["First number"],
+      "keyword_args": { "value": 0.0, "format": "%.6f" },
+      "return_type": "float",
+      "return_bound_to": "num1",
+      "side_effect": "Renders a numeric input widget in left column; returns current value from session state",
+      "business_rule": "BR-002",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_07",
+      "node_id": "S6.3.1",
+      "line": 73,
+      "receiver": "st",
+      "method": "number_input",
+      "full_call": "st.number_input(\"Second number\", value=0.0, format=\"%.6f\")",
+      "call_type": "mixed",
+      "positional_args": ["Second number"],
+      "keyword_args": { "value": 0.0, "format": "%.6f" },
+      "return_type": "float",
+      "return_bound_to": "num2",
+      "side_effect": "Renders a numeric input widget in right column; returns current value from session state",
+      "business_rule": "BR-002",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_08",
+      "node_id": "S6.4",
+      "line": 78,
+      "receiver": "st",
+      "method": "selectbox",
+      "full_call": "st.selectbox(\"Operation\", (\"Add\", \"Subtract\", \"Multiply\", \"Divide\"), index=0)",
+      "call_type": "mixed",
+      "positional_args": ["Operation", ["Add", "Subtract", "Multiply", "Divide"]],
+      "keyword_args": { "index": 0 },
+      "return_type": "str",
+      "return_bound_to": "operation",
+      "side_effect": "Renders a dropdown widget; returns current selection from session state",
+      "business_rule": "BR-003 BR-004",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_09",
+      "node_id": "S6.5",
+      "line": 87,
+      "receiver": "st",
+      "method": "form_submit_button",
+      "full_call": "st.form_submit_button(\"Calculate\")",
+      "call_type": "positional",
+      "positional_args": ["Calculate"],
+      "keyword_args": {},
+      "return_type": "bool",
+      "return_bound_to": "submitted",
+      "side_effect": "Renders a submit button; returns True on the re-run immediately following a click",
+      "business_rule": "BR-007",
+      "section": "SECTION_3_INPUT_FORM",
+      "always_executes": true
+    },
+    {
+      "call_id": "FC_10",
+      "node_id": "S7.4.2.1",
+      "line": 122,
+      "receiver": "st",
+      "method": "error",
+      "full_call": "st.error(\"Division by zero is not allowed.\")",
+      "call_type": "positional",
+      "positional_args": ["Division by zero is not allowed."],
+      "keyword_args": {},
+      "return_type": "None",
+      "side_effect": "Renders a red error alert banner in the UI",
+      "business_rule": "BR-001",
+      "section": "SECTION_4_COMPUTATION_ENGINE",
+      "execution_condition": "submitted == True AND operation == 'Divide' AND num2 == 0"
+    },
+    {
+      "call_id": "FC_11",
+      "node_id": "S7.4.2.2",
+      "line": 123,
+      "receiver": "st",
+      "method": "stop",
+      "full_call": "st.stop()",
+      "call_type": "positional",
+      "positional_args": [],
+      "keyword_args": {},
+      "return_type": "None (never returns — raises exception)",
+      "raises": "streamlit.runtime.scriptrunner.StopException",
+      "side_effect": "Immediately halts all further script execution for this Streamlit re-run",
+      "business_rule": "BR-001",
+      "section": "SECTION_4_COMPUTATION_ENGINE",
+      "execution_condition": "submitted == True AND operation == 'Divide' AND num2 == 0"
+    },
+    {
+      "call_id": "FC_12",
+      "node_id": "S7.5",
+      "line": 133,
+      "receiver": "st",
+      "method": "success",
+      "full_call": "st.success(f\"Result: {num1} {symbol} {num2} = {result}\")",
+      "call_type": "positional",
+      "positional_args": ["f-string: Result: {num1} {symbol} {num2} = {result}"],
+      "keyword_args": {},
+      "return_type": "None",
+      "side_effect": "Renders a green success banner with the formatted result equation",
+      "business_rule": "BR-005",
+      "section": "SECTION_5_RESULT_DISPLAY",
+      "execution_condition": "submitted == True AND not halted by st.stop()"
+    },
+    {
+      "call_id": "FC_13",
+      "node_id": "S7.6",
+      "line": 138,
+      "receiver": "st",
+      "method": "expander",
+      "full_call": "st.expander(\"Computation details\")",
+      "call_type": "positional",
+      "positional_args": ["Computation details"],
+      "keyword_args": {},
+      "return_type": "DeltaGenerator (context manager)",
+      "side_effect": "Renders a collapsible panel, collapsed by default",
+      "business_rule": "BR-006",
+      "section": "SECTION_5_RESULT_DISPLAY",
+      "used_as": "context_manager",
+      "execution_condition": "submitted == True AND not halted by st.stop()"
+    },
+    {
+      "call_id": "FC_14",
+      "node_id": "S7.6.1",
+      "line": 139,
+      "receiver": "st",
+      "method": "write",
+      "full_call": "st.write({\"first_number\": num1, \"second_number\": num2, \"operation\": operation, \"result\": result})",
+      "call_type": "positional",
+      "positional_args": [
+        {
+          "type": "dict_literal",
+          "keys": ["first_number", "second_number", "operation", "result"],
+          "values": ["num1", "num2", "operation", "result"]
+        }
+      ],
+      "keyword_args": {},
+      "return_type": "None",
+      "side_effect": "Renders the computation dictionary as a formatted table inside the expander",
+      "business_rule": "BR-006",
+      "section": "SECTION_5_RESULT_DISPLAY",
+      "execution_condition": "submitted == True AND not halted by st.stop() AND expander is open"
+    }
+  ],
+
+  "context_managers": [
+    {
+      "cm_id": "CM_01",
+      "node_id": "S6",
+      "line": 62,
+      "end_line": 87,
+      "ast_node": "With",
+      "context_expression": "st.form(\"calculator_form\")",
+      "as_variable": null,
+      "purpose": "Batches all widget state changes; prevents reactive re-runs while user is typing; defers calculation until submit (BR-007)",
+      "nesting_depth": 0,
+      "contains_nodes": ["S6.1", "S6.2", "S6.3", "S6.4", "S6.5"],
+      "streamlit_semantics": {
+        "enter": "Activates form context; subsequent widgets are registered under this form",
+        "exit": "Commits all widget state to session state as a batch"
+      }
+    },
+    {
+      "cm_id": "CM_02",
+      "node_id": "S6.2",
+      "line": 66,
+      "end_line": 69,
+      "ast_node": "With",
+      "context_expression": "col1",
+      "as_variable": null,
+      "purpose": "Directs subsequent widget rendering into the left column of the 2-column layout",
+      "nesting_depth": 1,
+      "parent_cm": "CM_01",
+      "contains_nodes": ["S6.2.1"],
+      "streamlit_semantics": {
+        "enter": "Activates left-column DeltaGenerator as the rendering target",
+        "exit": "Restores the parent rendering context (the form body)"
+      }
+    },
+    {
+      "cm_id": "CM_03",
+      "node_id": "S6.3",
+      "line": 70,
+      "end_line": 73,
+      "ast_node": "With",
+      "context_expression": "col2",
+      "as_variable": null,
+      "purpose": "Directs subsequent widget rendering into the right column of the 2-column layout",
+      "nesting_depth": 1,
+      "parent_cm": "CM_01",
+      "contains_nodes": ["S6.3.1"],
+      "streamlit_semantics": {
+        "enter": "Activates right-column DeltaGenerator as the rendering target",
+        "exit": "Restores the parent rendering context (the form body)"
+      }
+    },
+    {
+      "cm_id": "CM_04",
+      "node_id": "S7.6",
+      "line": 138,
+      "end_line": 144,
+      "ast_node": "With",
+      "context_expression": "st.expander(\"Computation details\")",
+      "as_variable": null,
+      "purpose": "Renders a collapsible panel; widgets inside are displayed only when the panel is expanded by the user (BR-006)",
+      "nesting_depth": 1,
+      "parent_context": "if submitted:",
+      "contains_nodes": ["S7.6.1"],
+      "execution_condition": "submitted == True AND not halted by st.stop()",
+      "streamlit_semantics": {
+        "enter": "Activates expander DeltaGenerator; content is rendered inside collapsible panel",
+        "exit": "Closes the expander rendering context"
+      }
+    }
+  ],
+
+  "arithmetic_operations": [
+    {
+      "op_id": "ARITH_01",
+      "node_id": "S7.1.1",
+      "line": 97,
+      "ast_node": "BinOp",
+      "python_operator": "Add",
+      "symbol": "+",
+      "left_operand": { "ast_node": "Name", "id": "num1", "inferred_type": "float" },
+      "right_operand": { "ast_node": "Name", "id": "num2", "inferred_type": "float" },
+      "result_bound_to": "result",
+      "inferred_result_type": "float",
+      "execution_condition": "submitted == True AND operation == 'Add'",
+      "display_symbol_assigned": "+",
+      "business_rule": null
+    },
+    {
+      "op_id": "ARITH_02",
+      "node_id": "S7.2.1",
+      "line": 100,
+      "ast_node": "BinOp",
+      "python_operator": "Sub",
+      "symbol": "-",
+      "left_operand": { "ast_node": "Name", "id": "num1", "inferred_type": "float" },
+      "right_operand": { "ast_node": "Name", "id": "num2", "inferred_type": "float" },
+      "result_bound_to": "result",
+      "inferred_result_type": "float",
+      "execution_condition": "submitted == True AND operation == 'Subtract'",
+      "display_symbol_assigned": "-",
+      "business_rule": null
+    },
+    {
+      "op_id": "ARITH_03",
+      "node_id": "S7.3.1",
+      "line": 103,
+      "ast_node": "BinOp",
+      "python_operator": "Mult",
+      "symbol": "*",
+      "left_operand": { "ast_node": "Name", "id": "num1", "inferred_type": "float" },
+      "right_operand": { "ast_node": "Name", "id": "num2", "inferred_type": "float" },
+      "result_bound_to": "result",
+      "inferred_result_type": "float",
+      "execution_condition": "submitted == True AND operation == 'Multiply'",
+      "display_symbol_assigned": "\u00d7",
+      "business_rule": null
+    },
+    {
+      "op_id": "ARITH_04",
+      "node_id": "S7.4.3",
+      "line": 125,
+      "ast_node": "BinOp",
+      "python_operator": "Div",
+      "symbol": "/",
+      "left_operand": { "ast_node": "Name", "id": "num1", "inferred_type": "float" },
+      "right_operand": { "ast_node": "Name", "id": "num2", "inferred_type": "float" },
+      "result_bound_to": "result",
+      "inferred_result_type": "float",
+      "execution_condition": "submitted == True AND operation == 'Divide' AND num2 != 0",
+      "display_symbol_assigned": "\u00f7",
+      "business_rule": "BR-001",
+      "guard_condition": "num2 != 0",
+      "guard_enforced_by": "S7.4.2 (if num2 == 0 → st.error + st.stop())",
+      "exception_without_guard": "ZeroDivisionError: float division by zero"
+    }
+  ],
+
+  "string_literals": {
+    "total_unique_values": 26,
+    "by_category": {
+      "page_configuration": [
+        { "value": "Calculator",  "usage": "page_title in st.set_page_config", "line": 46 },
+        { "value": "\ud83e\uddf2",         "usage": "page_icon in st.set_page_config",  "line": 46 },
+        { "value": "centered",    "usage": "layout in st.set_page_config",     "line": 46 }
+      ],
+      "ui_labels": [
+        { "value": "Simple Calculator",                                          "usage": "st.title",               "line": 52 },
+        { "value": "Perform quick arithmetic with a clean Streamlit UI.",        "usage": "st.caption",             "line": 53 },
+        { "value": "First number",                                               "usage": "st.number_input label",  "line": 69 },
+        { "value": "Second number",                                              "usage": "st.number_input label",  "line": 73 },
+        { "value": "Operation",                                                  "usage": "st.selectbox label",     "line": 79 },
+        { "value": "Calculate",                                                  "usage": "st.form_submit_button",  "line": 87 },
+        { "value": "Computation details",                                        "usage": "st.expander label",      "line": 138 }
+      ],
+      "widget_configuration": [
+        { "value": "calculator_form", "usage": "st.form key",            "line": 62 },
+        { "value": "%.6f",            "usage": "format in st.number_input (num1 and num2)", "lines": [69, 73] }
+      ],
+      "operation_names": [
+        { "value": "Add",      "usage": "selectbox option and branch condition", "lines": [80, 96] },
+        { "value": "Subtract", "usage": "selectbox option and branch condition", "lines": [80, 99] },
+        { "value": "Multiply", "usage": "selectbox option and branch condition", "lines": [80, 102] },
+        { "value": "Divide",   "usage": "selectbox option (implied in else branch)", "line": 80 }
+      ],
+      "display_symbols": [
+        { "value": "+",    "usage": "symbol for Add branch",      "line": 98 },
+        { "value": "-",    "usage": "symbol for Subtract branch", "line": 101 },
+        { "value": "\u00d7",    "usage": "symbol for Multiply branch", "line": 104 },
+        { "value": "\u00f7",    "usage": "symbol for Divide branch",   "line": 109 }
+      ],
+      "error_messages": [
+        { "value": "Division by zero is not allowed.", "usage": "st.error message", "line": 122, "business_rule": "BR-001" }
+      ],
+      "dict_keys": [
+        { "value": "first_number",  "usage": "key in st.write dict", "line": 140 },
+        { "value": "second_number", "usage": "key in st.write dict", "line": 141 },
+        { "value": "operation",     "usage": "key in st.write dict", "line": 142 },
+        { "value": "result",        "usage": "key in st.write dict", "line": 143 }
+      ],
+      "fstring_static_fragments": [
+        { "value": "Result: ", "usage": "JoinedStr prefix in st.success", "line": 133 },
+        { "value": " ",        "usage": "JoinedStr separator (×3) in st.success", "line": 133 },
+        { "value": " = ",      "usage": "JoinedStr equals separator in st.success", "line": 133 }
+      ]
+    }
+  },
+
+  "conditional_logic_tree": {
+    "description": "Full decision tree of the if/elif/else computation chain",
+    "root": {
+      "node_id": "S7",
+      "condition": "submitted",
+      "condition_type": "Name (bool)",
+      "line": 95,
+      "branches": {
+        "true": {
+          "label": "Form was submitted (Calculate button clicked)",
+          "child": {
+            "node_id": "S7.1",
+            "condition": "operation == 'Add'",
+            "condition_type": "Compare (Eq)",
+            "line": 96,
+            "branches": {
+              "true": {
+                "label": "Addition selected",
+                "actions": [
+                  { "node_id": "S7.1.1", "line": 97, "action": "result = num1 + num2", "assigns": "result" },
+                  { "node_id": "S7.1.2", "line": 98, "action": "symbol = '+'",          "assigns": "symbol" }
+                ],
+                "falls_through_to": "S7.5 (st.success)"
+              },
+              "false": {
+                "label": "Not Add — evaluate next elif",
+                "child": {
+                  "node_id": "S7.2",
+                  "condition": "operation == 'Subtract'",
+                  "condition_type": "Compare (Eq)",
+                  "line": 99,
+                  "is_elif": true,
+                  "branches": {
+                    "true": {
+                      "label": "Subtraction selected",
+                      "actions": [
+                        { "node_id": "S7.2.1", "line": 100, "action": "result = num1 - num2", "assigns": "result" },
+                        { "node_id": "S7.2.2", "line": 101, "action": "symbol = '-'",          "assigns": "symbol" }
+                      ],
+                      "falls_through_to": "S7.5 (st.success)"
+                    },
+                    "false": {
+                      "label": "Not Subtract — evaluate next elif",
+                      "child": {
+                        "node_id": "S7.3",
+                        "condition": "operation == 'Multiply'",
+                        "condition_type": "Compare (Eq)",
+                        "line": 102,
+                        "is_elif": true,
+                        "branches": {
+                          "true": {
+                            "label": "Multiplication selected",
+                            "actions": [
+                              { "node_id": "S7.3.1", "line": 103, "action": "result = num1 * num2", "assigns": "result" },
+                              { "node_id": "S7.3.2", "line": 104, "action": "symbol = '\u00d7'",          "assigns": "symbol" }
+                            ],
+                            "falls_through_to": "S7.5 (st.success)"
+                          },
+                          "false": {
+                            "label": "Divide (implied else — selectbox guarantees this is 'Divide')",
+                            "is_else": true,
+                            "line": 105,
+                            "preamble_actions": [
+                              { "node_id": "S7.4.1", "line": 109, "action": "symbol = '\u00f7'", "assigns": "symbol" }
+                            ],
+                            "guard": {
+                              "node_id": "S7.4.2",
+                              "condition": "num2 == 0",
+                              "condition_type": "Compare (Eq)",
+                              "line": 121,
+                              "business_rule": "BR-001",
+                              "branches": {
+                                "true": {
+                                  "label": "Division by zero detected",
+                                  "actions": [
+                                    { "node_id": "S7.4.2.1", "line": 122, "action": "st.error('Division by zero is not allowed.')", "side_effect": "renders red error banner" },
+                                    { "node_id": "S7.4.2.2", "line": 123, "action": "st.stop()", "side_effect": "raises StopException — execution halts; no further code runs" }
+                                  ],
+                                  "terminal": true,
+                                  "falls_through_to": null
+                                },
+                                "false": {
+                                  "label": "num2 is non-zero — safe to divide",
+                                  "actions": [
+                                    { "node_id": "S7.4.3", "line": 125, "action": "result = num1 / num2", "assigns": "result" }
+                                  ],
+                                  "falls_through_to": "S7.5 (st.success)"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "common_tail_after_branching": [
+            { "node_id": "S7.5", "line": 133, "action": "st.success(f'Result: {num1} {symbol} {num2} = {result}')" },
+            { "node_id": "S7.6", "line": 138, "action": "with st.expander('Computation details'): st.write({...})" }
+          ]
+        },
+        "false": {
+          "label": "Form not submitted — skip entire computation block",
+          "actions": [],
+          "falls_through_to": "module end (no output rendered)"
+        }
+      }
+    }
+  },
+
+  "data_flow": {
+    "description": "Tracks how num1, num2, and operation flow through the program to produce result and symbol",
+    "variables": {
+      "num1": {
+        "definition": { "node_id": "S6.2.1", "line": 69, "source": "st.number_input widget", "type": "float" },
+        "uses": [
+          { "node_id": "S7.1.1", "line": 97,  "context": "BinOp left operand", "operation": "num1 + num2 → result" },
+          { "node_id": "S7.2.1", "line": 100, "context": "BinOp left operand", "operation": "num1 - num2 → result" },
+          { "node_id": "S7.3.1", "line": 103, "context": "BinOp left operand", "operation": "num1 * num2 → result" },
+          { "node_id": "S7.4.3", "line": 125, "context": "BinOp left operand", "operation": "num1 / num2 → result" },
+          { "node_id": "S7.5",   "line": 133, "context": "FormattedValue in f-string", "operation": "interpolated into success message" },
+          { "node_id": "S7.6.1", "line": 141, "context": "Dict value", "operation": "written to expander dict under key 'first_number'" }
+        ],
+        "flow_summary": "num1 (widget) → arithmetic operand → result; also directly displayed in output"
+      },
+      "num2": {
+        "definition": { "node_id": "S6.3.1", "line": 73, "source": "st.number_input widget", "type": "float" },
+        "uses": [
+          { "node_id": "S7.1.1", "line": 97,  "context": "BinOp right operand", "operation": "num1 + num2 → result" },
+          { "node_id": "S7.2.1", "line": 100, "context": "BinOp right operand", "operation": "num1 - num2 → result" },
+          { "node_id": "S7.3.1", "line": 103, "context": "BinOp right operand", "operation": "num1 * num2 → result" },
+          { "node_id": "S7.4.2", "line": 121, "context": "Compare left operand", "operation": "num2 == 0 guard check (BR-001)" },
+          { "node_id": "S7.4.3", "line": 125, "context": "BinOp right operand (divisor)", "operation": "num1 / num2 → result" },
+          { "node_id": "S7.5",   "line": 133, "context": "FormattedValue in f-string", "operation": "interpolated into success message" },
+          { "node_id": "S7.6.1", "line": 142, "context": "Dict value", "operation": "written to expander dict under key 'second_number'" }
+        ],
+        "flow_summary": "num2 (widget) → arithmetic operand (and divisor for Divide); also used in zero-guard check and directly displayed in output"
+      },
+      "operation": {
+        "definition": { "node_id": "S6.4", "line": 78, "source": "st.selectbox widget", "type": "str", "domain": ["Add", "Subtract", "Multiply", "Divide"] },
+        "uses": [
+          { "node_id": "S7.1",   "line": 96,  "context": "Compare in if-test",     "operation": "operation == 'Add' → branch selection" },
+          { "node_id": "S7.2",   "line": 99,  "context": "Compare in elif-test",   "operation": "operation == 'Subtract' → branch selection" },
+          { "node_id": "S7.3",   "line": 102, "context": "Compare in elif-test",   "operation": "operation == 'Multiply' → branch selection" },
+          { "node_id": "S7.6.1", "line": 143, "context": "Dict value", "operation": "written to expander dict under key 'operation'" }
+        ],
+        "flow_summary": "operation (widget) → controls which arithmetic branch executes → determines which BinOp runs and which symbol is assigned"
+      },
+      "submitted": {
+        "definition": { "node_id": "S6.5", "line": 87, "source": "st.form_submit_button widget", "type": "bool" },
+        "uses": [
+          { "node_id": "S7", "line": 95, "context": "if-test", "operation": "gates entire computation engine" }
+        ],
+        "flow_summary": "submitted (widget) → boolean gate → enables or suppresses all computation and display"
+      },
+      "result": {
+        "definitions": [
+          { "node_id": "S7.1.1", "line": 97,  "expression": "num1 + num2", "condition": "operation == 'Add'" },
+          { "node_id": "S7.2.1", "line": 100, "expression": "num1 - num2", "condition": "operation == 'Subtract'" },
+          { "node_id": "S7.3.1", "line": 103, "expression": "num1 * num2", "condition": "operation == 'Multiply'" },
+          { "node_id": "S7.4.3", "line": 125, "expression": "num1 / num2", "condition": "operation == 'Divide' AND num2 != 0" }
+        ],
+        "uses": [
+          { "node_id": "S7.5",   "line": 133, "context": "FormattedValue in f-string", "operation": "interpolated into success message" },
+          { "node_id": "S7.6.1", "line": 144, "context": "Dict value", "operation": "written to expander dict under key 'result'" }
+        ],
+        "flow_summary": "result = f(num1, num2, operation) — exactly one branch assigns it; undefined in Divide+zero path (st.stop() prevents use)"
+      },
+      "symbol": {
+        "definitions": [
+          { "node_id": "S7.1.2", "line": 98,  "value": "+", "condition": "operation == 'Add'" },
+          { "node_id": "S7.2.2", "line": 101, "value": "-", "condition": "operation == 'Subtract'" },
+          { "node_id": "S7.3.2", "line": 104, "value": "\u00d7", "condition": "operation == 'Multiply'" },
+          { "node_id": "S7.4.1", "line": 109, "value": "\u00f7", "condition": "operation == 'Divide' (before zero-guard)" }
+        ],
+        "uses": [
+          { "node_id": "S7.5", "line": 133, "context": "FormattedValue in f-string", "operation": "interpolated into success message" }
+        ],
+        "flow_summary": "symbol = display representation of the selected operation; always assigned before st.success"
+      },
+      "col1": {
+        "definition": { "node_id": "S6.1", "line": 64, "source": "tuple unpack from st.columns(2)", "type": "DeltaGenerator" },
+        "uses": [
+          { "node_id": "S6.2", "line": 66, "context": "context_manager in With statement", "operation": "directs num1 widget into left column" }
+        ]
+      },
+      "col2": {
+        "definition": { "node_id": "S6.1", "line": 64, "source": "tuple unpack from st.columns(2)", "type": "DeltaGenerator" },
+        "uses": [
+          { "node_id": "S6.3", "line": 70, "context": "context_manager in With statement", "operation": "directs num2 widget into right column" }
+        ]
+      }
+    },
+    "pipeline": [
+      { "stage": 1, "name": "Widget Input Collection",  "variables_produced": ["num1", "num2", "operation", "submitted", "col1", "col2"] },
+      { "stage": 2, "name": "Submission Gate",          "variable_consumed": "submitted", "gate_effect": "True: proceed; False: terminate" },
+      { "stage": 3, "name": "Operation Branch Routing", "variable_consumed": "operation", "outputs": "selects one of 4 arithmetic branches" },
+      { "stage": 4, "name": "Arithmetic Evaluation",    "variables_consumed": ["num1", "num2"], "variable_produced": "result" },
+      { "stage": 5, "name": "Symbol Assignment",        "variable_consumed": "operation", "variable_produced": "symbol" },
+      { "stage": 6, "name": "Result Rendering",         "variables_consumed": ["num1", "num2", "symbol", "result"], "output": "st.success banner (BR-005)" },
+      { "stage": 7, "name": "Details Rendering",        "variables_consumed": ["num1", "num2", "operation", "result"], "output": "st.write dict in st.expander (BR-006)" }
+    ]
+  },
+
+  "complexity_metrics": {
+    "cyclomatic_complexity": {
+      "value": 6,
+      "formula": "M = E - N + 2P = 1 (base) + 5 (decision points)",
+      "decision_points": [
+        { "id": "DP_1", "node_id": "S7",     "line": 95,  "condition": "if submitted",           "type": "If" },
+        { "id": "DP_2", "node_id": "S7.1",   "line": 96,  "condition": "if operation == 'Add'",      "type": "If" },
+        { "id": "DP_3", "node_id": "S7.2",   "line": 99,  "condition": "elif operation == 'Subtract'","type": "Elif" },
+        { "id": "DP_4", "node_id": "S7.3",   "line": 102, "condition": "elif operation == 'Multiply'","type": "Elif" },
+        { "id": "DP_5", "node_id": "S7.4.2", "line": 121, "condition": "if num2 == 0",           "type": "If" }
+      ],
+      "total_decision_points": 5
+    },
+    "nesting_depth": {
+      "max_depth": 3,
+      "deepest_path": "module → if submitted (depth 1) → else Divide branch (depth 2) → if num2 == 0 body (depth 3)",
+      "deepest_nodes": ["S7.4.2.1", "S7.4.2.2"],
+      "depth_by_node": {
+        "S3": 0, "S4": 0, "S5": 0, "S6": 0, "S7": 0,
+        "S6.1": 1, "S6.2": 1, "S6.3": 1, "S6.4": 1, "S6.5": 1,
+        "S6.2.1": 2, "S6.3.1": 2,
+        "S7.1": 1, "S7.2": 1, "S7.3": 1, "S7.4": 1,
+        "S7.1.1": 2, "S7.1.2": 2,
+        "S7.2.1": 2, "S7.2.2": 2,
+        "S7.3.1": 2, "S7.3.2": 2,
+        "S7.4.1": 2, "S7.4.2": 2, "S7.4.3": 2,
+        "S7.4.2.1": 3, "S7.4.2.2": 3,
+        "S7.5": 1, "S7.6": 1, "S7.6.1": 2
+      }
+    },
+    "branch_counts": {
+      "total_branches": 10,
+      "if_branches": 5,
+      "elif_branches": 2,
+      "else_branches": 1,
+      "with_blocks": 4,
+      "early_exits": 1
+    },
+    "statement_counts": {
+      "total_executable_statements": 34,
+      "top_level_statements": 7,
+      "assignments": 13,
+      "expression_statements": 14,
+      "with_statements": 4,
+      "if_statements": 5,
+      "return_statements": 0,
+      "function_calls": 14,
+      "context_manager_uses": 4
+    },
+    "variable_metrics": {
+      "total_unique_variables": 8,
+      "variables": ["col1", "col2", "num1", "num2", "operation", "submitted", "result", "symbol"],
+      "variables_with_multiple_definitions": ["result", "symbol"],
+      "user_input_variables": ["num1", "num2", "operation", "submitted"],
+      "computed_variables": ["result", "symbol"],
+      "layout_variables": ["col1", "col2"]
+    },
+    "string_literal_counts": {
+      "total_unique_string_literals": 26,
+      "ui_label_strings": 7,
+      "configuration_strings": 5,
+      "operation_name_strings": 4,
+      "display_symbol_strings": 4,
+      "error_message_strings": 1,
+      "dict_key_strings": 4,
+      "fstring_static_fragments": 4
+    },
+    "arithmetic_operation_counts": {
+      "addition": 1,
+      "subtraction": 1,
+      "multiplication": 1,
+      "division": 1,
+      "total": 4,
+      "guarded_operations": 1,
+      "unguarded_operations": 3
+    },
+    "function_call_counts": {
+      "total_streamlit_api_calls": 14,
+      "always_execute": 9,
+      "conditionally_execute": 5,
+      "context_manager_calls": 4,
+      "widget_calls": 5,
+      "layout_calls": 2,
+      "display_calls": 4,
+      "control_flow_calls": 1
+    },
+    "halting_paths": {
+      "normal_exit_paths": 4,
+      "early_exit_paths": 1,
+      "early_exit_condition": "submitted == True AND operation == 'Divide' AND num2 == 0",
+      "early_exit_mechanism": "st.stop() → StopException"
+    }
+  }
+}

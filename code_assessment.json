@@ -1,0 +1,531 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "generated_by": "code-assessor",
+    "assessment_date": "2025-01-30",
+    "source_inputs": [
+      "analysis_results.json",
+      "business_rules_extractor_analysis.json",
+      "ast_analysis.json",
+      "app.py"
+    ],
+    "project": "Streamlit Calculator App",
+    "repository": "xinni-cap/github-copilot-test",
+    "entry_point": "app.py",
+    "language": "Python",
+    "framework": "Streamlit >= 1.40.0"
+  },
+
+  "overall_quality_score": 72,
+  "grade": "B",
+  "summary": "A well-written, minimal single-page Streamlit calculator that scores highly on readability, security, and performance for its scope. The primary score reduction comes from the complete absence of automated tests, the lack of function or class decomposition (making the arithmetic logic untestable in isolation), and a loose version pin in requirements.txt. The code correctly implements all seven documented business rules with clean section separation. Technical debt is architectural rather than correctness-related and is fully recoverable in approximately 10 hours of focused effort.",
+
+  "score_breakdown": {
+    "readability": {
+      "score": 88,
+      "weight": 0.15,
+      "weighted_contribution": 13.2,
+      "rationale": "Linear 50-LOC script with cyclomatic complexity 6, max nesting depth 3, clear section banners, comprehensive module docstring, and inline comments on every non-trivial line. Minor deduction for default float repr in result display and absent type hints."
+    },
+    "maintainability": {
+      "score": 58,
+      "weight": 0.20,
+      "weighted_contribution": 11.6,
+      "rationale": "No function or class decomposition means adding any operation or changing any behaviour requires editing interleaved UI and logic code. Hardcoded strings, implicit else routing, and the monolithic structure all increase change-risk. Improves substantially once calculate() is extracted."
+    },
+    "testability": {
+      "score": 22,
+      "weight": 0.20,
+      "weighted_contribution": 4.4,
+      "rationale": "Zero test files exist in the repository. Arithmetic logic cannot be unit-tested independently because it is embedded in Streamlit script execution context. A full Streamlit session would be required to exercise even a single branch, making TDD impossible without refactoring."
+    },
+    "security": {
+      "score": 84,
+      "weight": 0.15,
+      "weighted_contribution": 12.6,
+      "rationale": "No secrets, no SQL, no eval/exec, no arbitrary code paths. Single dependency minimises supply-chain attack surface. The open-ended >=1.40.0 version pin is the only security concern — a future vulnerable Streamlit version could be installed automatically."
+    },
+    "performance": {
+      "score": 92,
+      "weight": 0.10,
+      "weighted_contribution": 9.2,
+      "rationale": "Arithmetic operations are O(1) with negligible CPU cost. Streamlit re-run overhead is the only performance factor and is inherent to the framework. No N+1 queries, no loops, no file I/O, no external API calls."
+    },
+    "error_handling": {
+      "score": 70,
+      "weight": 0.10,
+      "weighted_contribution": 7.0,
+      "rationale": "BR-001 division-by-zero guard is correctly implemented with st.error() + st.stop(). No other error conditions are handled: overflow to inf, unexpected operation strings, and Streamlit API failures are all unguarded."
+    },
+    "code_structure": {
+      "score": 60,
+      "weight": 0.10,
+      "weighted_contribution": 6.0,
+      "rationale": "Clear logical section separation, single dependency, and adherence to Streamlit conventions. Score penalised for: no functions/classes, no test directory, no CI configuration, implicit else routing, __pycache__ tracked in git, and missing .gitignore."
+    }
+  },
+
+  "complexity_metrics": {
+    "cyclomatic_complexity": 6,
+    "code_complexity_rating": 3,
+    "logic_complexity_rating": 2,
+    "source_lines_of_code": 50,
+    "documented_lines_of_code": 145,
+    "executable_lines": 34,
+    "blank_lines": 10,
+    "max_nesting_depth": 3,
+    "number_of_functions": 0,
+    "number_of_classes": 0,
+    "number_of_imports": 1,
+    "decision_points": 5,
+    "streamlit_api_calls": 14,
+    "maintainability_index_estimated": 67,
+    "maintainability_index_scale": "0-100 (Microsoft formula approximation; 67 = moderate)"
+  },
+
+  "issues": [
+    {
+      "id": "ISS-001",
+      "line_number": null,
+      "file": "app.py (no tests/ directory exists)",
+      "issue_type": "Testing",
+      "criticality": 4,
+      "message": "Zero automated tests exist in the repository. All arithmetic branches, the division-by-zero guard (BR-001), and operation-routing logic are entirely unverified by any automated means.",
+      "solution": "Extract arithmetic into a pure calculate(num1, num2, operation) function in calculator_core.py with no Streamlit dependency, then create tests/test_calculator_core.py with pytest. Cover all four operation branches, the zero-division error path, edge cases (negative numbers, 0.0 operands, very large values), and floating-point precision assertions with math.isclose(). Target 100% branch coverage. Integrate pytest into a GitHub Actions CI workflow that gates merges on green tests. This eliminates all Test Debt and provides a regression safety net for future changes.",
+      "estimated_time": 3,
+      "business_rules_affected": ["BR-001", "BR-004"],
+      "technical_debt_ref": "TD-001"
+    },
+    {
+      "id": "ISS-002",
+      "line_number": 95,
+      "file": "app.py",
+      "issue_type": "Code Structure",
+      "criticality": 3,
+      "message": "The entire computation engine (lines 95-125) lives in a flat script with no functions or classes, making arithmetic logic inseparable from Streamlit rendering and impossible to unit-test in isolation.",
+      "solution": "Introduce a calculate(num1: float, num2: float, operation: str) -> tuple[float, str] pure function in a new calculator_core.py module containing zero Streamlit imports. This function raises ValueError for division by zero and unknown operations, and returns (result, symbol). Refactor app.py to be a thin rendering layer that calls calculate() and maps ValueError to st.error() + st.stop(). This enables unit testing without a browser, future CLI/API reuse, and clean scaling when new operations are added.",
+      "estimated_time": 1.5,
+      "business_rules_affected": ["BR-001", "BR-003", "BR-005"],
+      "technical_debt_ref": "TD-002"
+    },
+    {
+      "id": "ISS-003",
+      "line_number": 133,
+      "file": "app.py",
+      "issue_type": "Business Logic",
+      "criticality": 3,
+      "message": "The result f-string uses Python's default float repr (e.g. 0.30000000000000004 for 0.1+0.2) while inputs are constrained to format='%.6f'. Inconsistent precision display may appear as a calculation bug to users.",
+      "solution": "Change the result display line from st.success(f'Result: {num1} {symbol} {num2} = {result}') to st.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}') to enforce consistent 6-decimal formatting throughout. For applications requiring exact decimal arithmetic (financial), consider replacing float with decimal.Decimal in the core function and using quantize(Decimal('0.000001')). Document the IEEE 754 limitation in the UI caption so users are not confused by inherent float precision limits. This one-line fix closes the visual inconsistency immediately.",
+      "estimated_time": 0.5,
+      "business_rules_affected": ["BR-002", "BR-005"],
+      "technical_debt_ref": "TD-008"
+    },
+    {
+      "id": "ISS-004",
+      "line_number": 1,
+      "file": "requirements.txt",
+      "issue_type": "Code Structure",
+      "criticality": 3,
+      "message": "requirements.txt uses streamlit>=1.40.0 (open-ended lower bound), allowing pip to install any future major version including potentially breaking or vulnerable releases, making builds non-reproducible.",
+      "solution": "Pin to an exact version: streamlit==1.41.0 (or current stable). Create a separate requirements-dev.txt for development tooling (pytest, black, flake8, mypy) that can have broader ranges. Add a .github/dependabot.yml to automatically open PRs when new Streamlit releases are published, letting the test suite gate upgrades. Document the version pinning rationale in README.md so future maintainers understand the policy and follow it. Run pip-audit periodically to check for CVEs in pinned versions.",
+      "estimated_time": 0.5,
+      "business_rules_affected": [],
+      "technical_debt_ref": "TD-007"
+    },
+    {
+      "id": "ISS-005",
+      "line_number": 105,
+      "file": "app.py",
+      "issue_type": "Code Structure",
+      "criticality": 3,
+      "message": "The else: clause at line 105 implicitly handles 'Divide' without an explicit condition. If a developer adds a new operation to the selectbox without adding a matching elif, the new operation silently falls through to division logic and returns a wrong result.",
+      "solution": "Replace else: with elif operation == 'Divide': and add a final else: st.error(f'Unknown operation: {operation!r}'); st.stop() after it. This makes the routing exhaustive and self-documenting. When the calculate() function is extracted (ISS-002), add assert operation in VALID_OPERATIONS at the top of the function to fail fast during development. When the selectbox options are stored in the OPERATIONS constant dict (ENH-001), the routing naturally becomes dict-driven and eliminates the if/elif chain entirely.",
+      "estimated_time": 0.5,
+      "business_rules_affected": ["BR-003"],
+      "technical_debt_ref": "TD-004"
+    },
+    {
+      "id": "ISS-006",
+      "line_number": 69,
+      "file": "app.py",
+      "issue_type": "Maintainability",
+      "criticality": 2,
+      "message": "st.number_input has no min_value/max_value bounds. Users can enter arbitrarily large floats. Multiplying 1e308 by 10 silently returns float('inf'), which appears in the green success banner as a valid result without any warning.",
+      "solution": "Add min_value=-1e15, max_value=1e15 to both st.number_input calls to clip input at the widget level. In the calculate() function (after extraction per ISS-002), add import math and check math.isfinite(result) after every computation; raise ValueError('Result overflow: the numbers are too large to compute accurately') if the check fails. Display this as st.warning() rather than st.error() since it is a range concern, not a business rule violation. This closes the silent-infinity edge case and communicates the limitation clearly.",
+      "estimated_time": 1,
+      "business_rules_affected": ["BR-002"],
+      "technical_debt_ref": null
+    },
+    {
+      "id": "ISS-007",
+      "line_number": null,
+      "file": "app.py",
+      "issue_type": "Documentation",
+      "criticality": 2,
+      "message": "No logging or observability exists. Calculation events, error conditions (especially division-by-zero triggers), and usage patterns are completely invisible in production deployments.",
+      "solution": "Add import logging at the top of app.py and configure a logger with logging.getLogger(__name__). Log each successful calculation at INFO level: logger.info('calc op=%s num1=%s num2=%s result=%s', operation, num1, num2, result). Log the division-by-zero rejection at WARNING level: logger.warning('div_by_zero_rejected num1=%s', num1). Configure a logging.StreamHandler for development and a file handler or structured JSON handler (structlog/loguru) for production. This enables usage analytics, debugging, and operational monitoring without changing any business logic.",
+      "estimated_time": 1.5,
+      "business_rules_affected": [],
+      "technical_debt_ref": null
+    },
+    {
+      "id": "ISS-008",
+      "line_number": 46,
+      "file": "app.py",
+      "issue_type": "Maintainability",
+      "criticality": 2,
+      "message": "UI strings (page title, operation labels, button text, error message) are hardcoded literals scattered across the script with no single source of truth, making internationalisation and copy changes require source code edits.",
+      "solution": "Create config/strings.py with module-level constants: APP_TITLE = 'Simple Calculator', OPERATIONS = ('Add', 'Subtract', 'Multiply', 'Divide'), BTN_CALCULATE = 'Calculate', ERR_DIV_ZERO = 'Division by zero is not allowed.'. Import from that module in app.py. For internationalisation, replace with a gettext-based solution or a YAML locale file per language. This centralises all user-facing copy, makes changes auditable as a single git diff on strings.py, and enables A/B testing by swapping the constants module.",
+      "estimated_time": 1,
+      "business_rules_affected": ["BR-001", "BR-003"],
+      "technical_debt_ref": "TD-005"
+    },
+    {
+      "id": "ISS-009",
+      "line_number": null,
+      "file": "app.py (no functions defined)",
+      "issue_type": "Maintainability",
+      "criticality": 2,
+      "message": "No type hints are present anywhere in the codebase. When functions are extracted (ISS-002), the absence of annotations will leave mypy static analysis unavailable and IDE type inference weakened.",
+      "solution": "When extracting calculate() (ISS-002), annotate it as def calculate(num1: float, num2: float, operation: str) -> tuple[float, str]:. Add from __future__ import annotations at the top of all Python files for forward-compatible annotations. Annotate the OPERATIONS dict as dict[str, str]. Integrate mypy --strict into the CI pipeline (ENH-003) to enforce type completeness on all new code. This improves developer tooling auto-completion, catches type errors at development time, and makes function contracts explicit for future maintainers.",
+      "estimated_time": 0.5,
+      "business_rules_affected": [],
+      "technical_debt_ref": "TD-006"
+    },
+    {
+      "id": "ISS-010",
+      "line_number": 133,
+      "file": "app.py",
+      "issue_type": "Readability",
+      "criticality": 1,
+      "message": "The result success banner displays num1, num2, and result using Python's default float repr, which can show 1-17 significant digits, visually inconsistent with the 6-decimal format enforced by the number_input widgets.",
+      "solution": "One-line fix: change to st.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}'). This makes input and output formatting visually consistent at 6 decimal places. Also apply .6f formatting in the computation details dictionary passed to st.write(), replacing raw float values with pre-formatted strings or using a display dict. This eliminates the jarring precision mismatch users see when computing values like 0.1 + 0.2. Partially overlaps with ISS-003.",
+      "estimated_time": 0.25,
+      "business_rules_affected": ["BR-002", "BR-005"],
+      "technical_debt_ref": "TD-008"
+    },
+    {
+      "id": "ISS-011",
+      "line_number": null,
+      "file": "repository root",
+      "issue_type": "Code Structure",
+      "criticality": 1,
+      "message": "No .gitignore file exists. __pycache__/ is currently committed to the repository. No .python-version file specifies the expected Python version.",
+      "solution": "Add a .gitignore using the standard Python template from gitignore.io with python and streamlit tags. Key entries: __pycache__/, *.pyc, *.pyo, .venv/, .streamlit/secrets.toml, .env, dist/, build/. Run git rm -r --cached __pycache__/ to remove the already-tracked cache directory. Add a .python-version file containing 3.11 (or the target version). This keeps the repository clean, prevents accidental secret commit via .streamlit/secrets.toml, and communicates the expected runtime version to tools like pyenv.",
+      "estimated_time": 0.25,
+      "business_rules_affected": [],
+      "technical_debt_ref": "TD-009"
+    }
+  ],
+
+  "strengths": [
+    {
+      "id": "STR-001",
+      "title": "Clean Linear Readability",
+      "description": "The original 50-LOC source has cyclomatic complexity of 6 and max nesting depth of 3 — well within readable thresholds. The logical sections are clearly delimited by comment banners. A new developer can understand the entire application in under 5 minutes.",
+      "business_rules": [],
+      "impact": "Low onboarding cost; easy peer review"
+    },
+    {
+      "id": "STR-002",
+      "title": "Correct Division-by-Zero Guard with User-Friendly Error",
+      "description": "BR-001 is implemented correctly: num2 == 0 is detected before the division, st.error() shows a clear user message, and st.stop() halts script execution preventing both a ZeroDivisionError and a NameError on the unassigned result variable. The symbol assignment before the guard is also a subtle but correct ordering choice.",
+      "business_rules": ["BR-001"],
+      "impact": "Safe user experience; no crash on zero divisor"
+    },
+    {
+      "id": "STR-003",
+      "title": "Form Batching Prevents Partial-State Re-renders",
+      "description": "Using st.form() correctly groups all inputs so that Streamlit does not re-run the script (and therefore does not attempt a premature calculation) while the user is still typing. This eliminates a whole class of reactive UI bugs that commonly affect Streamlit applications written without form batching.",
+      "business_rules": ["BR-004", "BR-007"],
+      "impact": "Reliable UX; no premature calculation errors"
+    },
+    {
+      "id": "STR-004",
+      "title": "Operation Constrained by Selectbox — No Invalid String Routing",
+      "description": "The operation selectbox constrains input to exactly ('Add', 'Subtract', 'Multiply', 'Divide'). No user interaction can ever pass an invalid operation string to the routing block, eliminating an entire class of runtime routing errors without any explicit validation code.",
+      "business_rules": ["BR-003"],
+      "impact": "Implicit input safety via widget constraints"
+    },
+    {
+      "id": "STR-005",
+      "title": "Comprehensive Module Docstring Covering All 7 Business Rules",
+      "description": "The module docstring documents purpose, usage, dependencies, Streamlit execution architecture, and all seven business rules (BR-001 through BR-007). This is exemplary documentation for a Streamlit script and significantly reduces onboarding time for new developers.",
+      "business_rules": ["BR-001", "BR-002", "BR-003", "BR-004", "BR-005", "BR-006", "BR-007"],
+      "impact": "Excellent developer onboarding documentation"
+    },
+    {
+      "id": "STR-006",
+      "title": "Minimal Single Dependency",
+      "description": "The only runtime dependency is Streamlit itself. No ORM, no HTTP client, no database driver, no auth library. This minimal dependency footprint dramatically reduces supply-chain attack surface, pip resolution conflicts, and maintenance burden.",
+      "business_rules": [],
+      "impact": "Low supply-chain risk; fast install; minimal CVE surface"
+    },
+    {
+      "id": "STR-007",
+      "title": "Default Values Prevent Accidental Computation on Load",
+      "description": "Both number inputs default to 0.0 and the default operation is 'Add'. On initial load, clicking Calculate immediately would compute 0.0 + 0.0 = 0.0 — a harmless result. The Add default (BR-003) avoids the scenario where a user accidentally triggers a Divide operation with both inputs at 0, which would fire the division-by-zero guard immediately.",
+      "business_rules": ["BR-002", "BR-003", "BR-006"],
+      "impact": "Safe initial state; good UX on accidental early submit"
+    },
+    {
+      "id": "STR-008",
+      "title": "Collapsible Details Panel Preserves Clean UI",
+      "description": "The computation details dictionary is exposed in a collapsed st.expander, satisfying both the power-user transparency requirement (BR-007) and the clean-UI requirement for casual users. This is the correct Streamlit pattern for optional technical detail.",
+      "business_rules": ["BR-007"],
+      "impact": "Good UX for mixed audience of casual and technical users"
+    }
+  ],
+
+  "enhancements": [
+    {
+      "id": "ENH-001",
+      "title": "Extract Arithmetic Into Pure Testable Function",
+      "category": "Refactoring",
+      "priority": 5,
+      "description": "Refactor the computation engine block (lines 95-125) into a calculate(num1, num2, operation) pure function in a dedicated calculator_core.py module with zero Streamlit imports. The function raises ValueError for division by zero and unknown operations, returns (result, symbol) on success. app.py becomes a thin rendering layer calling calculate() and mapping ValueError to st.error(). This orchestrates the separation of UI from business logic, enables unit testing without a browser, and provides a foundation for all other enhancements.",
+      "example": "# calculator_core.py — NEW FILE\nfrom __future__ import annotations\n\nOPERATIONS: dict[str, str] = {\n    'Add':      '+',\n    'Subtract': '-',\n    'Multiply': '×',\n    'Divide':   '÷',\n}\n\ndef calculate(num1: float, num2: float, operation: str) -> tuple[float, str]:\n    \"\"\"Perform arithmetic; raise ValueError on invalid input.\"\"\"\n    if operation not in OPERATIONS:\n        raise ValueError(f'Unknown operation: {operation!r}')\n    symbol = OPERATIONS[operation]\n    if operation == 'Add':      return num1 + num2, symbol\n    if operation == 'Subtract': return num1 - num2, symbol\n    if operation == 'Multiply': return num1 * num2, symbol\n    if num2 == 0:               raise ValueError('Division by zero is not allowed.')\n    return num1 / num2, symbol\n\n# app.py — refactored computation block\nfrom calculator_core import calculate, OPERATIONS\n\nif submitted:\n    try:\n        result, symbol = calculate(num1, num2, operation)\n        st.success(f'Result: {num1:.6f} {symbol} {num2:.6f} = {result:.6f}')\n        with st.expander('Computation details'):\n            st.write({'first_number': num1, 'second_number': num2,\n                      'operation': operation, 'result': result})\n    except ValueError as exc:\n        st.error(str(exc))\n        st.stop()",
+      "estimated_effort_hours": 1.5,
+      "enables": ["ENH-002", "ENH-005", "ENH-006"]
+    },
+    {
+      "id": "ENH-002",
+      "title": "Add Comprehensive pytest Test Suite",
+      "category": "Code Standardization",
+      "priority": 5,
+      "description": "Standardize quality assurance by creating tests/test_calculator_core.py with a comprehensive pytest suite. With calculate() extracted (ENH-001), tests require no Streamlit mocking. Cover all four operation branches, both division paths (happy + zero), unknown operation rejection, negative operands, floating-point precision with math.isclose(), and overflow edge cases. Integrate into GitHub Actions CI. This closes TD-001 entirely and provides a regression safety net for all future changes.",
+      "example": "# tests/test_calculator_core.py\nimport math\nimport pytest\nfrom calculator_core import calculate\n\nclass TestAddition:\n    def test_positive(self):   assert calculate(3.0, 2.0, 'Add') == (5.0, '+')\n    def test_negative(self):   assert calculate(-1.0, -4.0, 'Add') == (-5.0, '+')\n    def test_zeros(self):      assert calculate(0.0, 0.0, 'Add') == (0.0, '+')\n    def test_float_precision(self):\n        result, _ = calculate(0.1, 0.2, 'Add')\n        assert math.isclose(result, 0.3, rel_tol=1e-9)\n\nclass TestDivision:\n    def test_valid(self):      assert calculate(10.0, 2.0, 'Divide') == (5.0, '÷')\n    def test_zero_divisor(self):\n        with pytest.raises(ValueError, match='Division by zero'):\n            calculate(5.0, 0.0, 'Divide')\n\nclass TestRouting:\n    def test_unknown_op(self):\n        with pytest.raises(ValueError, match='Unknown operation'):\n            calculate(1.0, 1.0, 'Modulo')",
+      "estimated_effort_hours": 3.0,
+      "depends_on": ["ENH-001"]
+    },
+    {
+      "id": "ENH-003",
+      "title": "Pin Exact Dependencies and Add CI Pipeline",
+      "category": "Project Configuration",
+      "priority": 4,
+      "description": "Orchestrate a reproducible build by pinning exact dependency versions and automating quality checks. Pin streamlit==1.41.0 in requirements.txt. Create requirements-dev.txt for development tooling. Add .github/workflows/ci.yml to run pytest, black --check, flake8, and mypy on every push and pull request. Add pyproject.toml to consolidate tool configuration. This eliminates TD-007 and TD-003 and ensures consistent behaviour across all developer environments and deployment targets.",
+      "example": "# .github/workflows/ci.yml\nname: CI\non: [push, pull_request]\njobs:\n  quality:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with: { python-version: '3.11' }\n      - run: pip install -r requirements-dev.txt\n      - run: black --check .\n      - run: flake8 . --max-line-length=100\n      - run: mypy calculator_core.py\n      - run: pytest tests/ --cov=calculator_core --cov-report=term-missing --cov-fail-under=90\n\n# pyproject.toml\n[tool.black]\nline-length = 100\n\n[tool.mypy]\nstrict = true\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\naddopts = \"-v\"",
+      "estimated_effort_hours": 2.0,
+      "depends_on": []
+    },
+    {
+      "id": "ENH-004",
+      "title": "Add Calculation History with st.session_state",
+      "category": "Refactoring",
+      "priority": 3,
+      "description": "Refactor the result display to persist a rolling history of calculations using Streamlit's session_state API. Each successful calculation appends a record to st.session_state.history. Render the last 10 calculations in a collapsible st.expander using st.dataframe. A 'Clear History' button resets the list. This demonstrates proper Streamlit state management, adds UX value for users performing multi-step calculations, and requires no architectural changes if ENH-001 is complete.",
+      "example": "# At top of app.py, after imports:\nfrom datetime import datetime\n\nif 'history' not in st.session_state:\n    st.session_state.history = []\n\n# Inside the try block after successful calculation:\nst.session_state.history.append({\n    'time':      datetime.now().strftime('%H:%M:%S'),\n    'num1':      f'{num1:.6f}',\n    'operation': f'{symbol}',\n    'num2':      f'{num2:.6f}',\n    'result':    f'{result:.6f}',\n})\n\n# Below the form:\nif st.session_state.history:\n    col_hist, col_clear = st.columns([4, 1])\n    with col_hist:\n        st.subheader(f'History ({len(st.session_state.history)} calculations)')\n    with col_clear:\n        if st.button('Clear'):\n            st.session_state.history = []\n            st.rerun()\n    st.dataframe(st.session_state.history[-10:], use_container_width=True)",
+      "estimated_effort_hours": 1.5,
+      "depends_on": ["ENH-001"]
+    },
+    {
+      "id": "ENH-005",
+      "title": "Expand Operation Set (Power, Modulo, Square Root)",
+      "category": "Refactoring",
+      "priority": 2,
+      "description": "Refactor OPERATIONS in calculator_core.py to support Power (num1 ** num2, symbol ^), Modulo (num1 % num2, symbol %), and Square Root (math.sqrt(num1), unary, symbol √). Add guard for negative sqrt input. Because all logic is in calculate() after ENH-001, adding an operation requires only updating OPERATIONS, adding a branch in calculate(), and the selectbox auto-updates from OPERATIONS.keys(). Update test suite accordingly.",
+      "example": "# calculator_core.py additions\nimport math\n\nOPERATIONS = {\n    'Add': '+', 'Subtract': '-', 'Multiply': '×', 'Divide': '÷',\n    'Power': '^', 'Modulo': '%', 'Square Root': '√',\n}\n\n# In calculate():\nif operation == 'Power':       return num1 ** num2, symbol\nif operation == 'Modulo':\n    if num2 == 0: raise ValueError('Modulo by zero is not allowed.')\n    return num1 % num2, symbol\nif operation == 'Square Root':\n    if num1 < 0:  raise ValueError('Square root of negative number is not defined.')\n    return math.sqrt(num1), symbol\n\n# app.py selectbox auto-updates:\noperation = st.selectbox('Operation', list(OPERATIONS.keys()), index=0)",
+      "estimated_effort_hours": 2.0,
+      "depends_on": ["ENH-001", "ENH-002"]
+    },
+    {
+      "id": "ENH-006",
+      "title": "Add Numeric Input Range Validation",
+      "category": "Code Standardization",
+      "priority": 3,
+      "description": "Standardize input safety by adding min_value and max_value bounds to both st.number_input calls and a post-computation math.isfinite() check in calculate(). This prevents silent inf/nan results from appearing in the success banner and communicates the application's supported numeric range to users.",
+      "example": "# app.py — number_input with bounds\nnum1 = st.number_input('First number', value=0.0, format='%.6f',\n                        min_value=-1e15, max_value=1e15)\nnum2 = st.number_input('Second number', value=0.0, format='%.6f',\n                        min_value=-1e15, max_value=1e15)\n\n# calculator_core.py — post-computation guard\nimport math\n\ndef calculate(num1: float, num2: float, operation: str) -> tuple[float, str]:\n    # ... existing logic ...\n    if not math.isfinite(result):\n        raise ValueError(\n            f'Result overflow: {num1} {symbol} {num2} exceeds the supported range.'\n        )\n    return result, symbol",
+      "estimated_effort_hours": 1.0,
+      "depends_on": ["ENH-001"]
+    }
+  ],
+
+  "technical_debt": [
+    {
+      "id": "TD-001",
+      "debt_type": "Test Debt",
+      "description": "Zero automated tests exist. All arithmetic branches, the division-by-zero guard, and operation routing are unverified. Any refactoring, Streamlit API upgrade, or new operation addition has no regression safety net.",
+      "impact": "HIGH",
+      "estimated_fix_time_hours": 3.0,
+      "resolution": "ENH-002 — Write pytest suite after extracting calculate() per ENH-001"
+    },
+    {
+      "id": "TD-002",
+      "debt_type": "Design Debt",
+      "description": "All business logic is embedded in the Streamlit script execution context. No function or class decomposition exists. The arithmetic cannot be called, tested, or reused without invoking the full Streamlit runtime.",
+      "impact": "HIGH",
+      "estimated_fix_time_hours": 1.5,
+      "resolution": "ENH-001 — Extract calculate() to calculator_core.py"
+    },
+    {
+      "id": "TD-003",
+      "debt_type": "Infrastructure Debt",
+      "description": "No CI/CD pipeline. No linting (flake8), formatting enforcement (black), or static type checking (mypy). Code quality gates are entirely manual and unenforced.",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 2.0,
+      "resolution": "ENH-003 — Add GitHub Actions CI with quality gates"
+    },
+    {
+      "id": "TD-004",
+      "debt_type": "Code Debt",
+      "description": "Implicit else clause at line 105 silently assumes 'Divide'. Adding any new operation to the selectbox without a matching elif causes silent wrong-branch execution with no runtime error.",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 0.5,
+      "resolution": "ISS-005 — Replace else with explicit elif + defensive else guard"
+    },
+    {
+      "id": "TD-005",
+      "debt_type": "Code Debt",
+      "description": "UI strings (app title, operation labels, button text, error messages) are hardcoded literals scattered across the script. No single source of truth for copy. Internationalisation requires source code edits.",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 1.0,
+      "resolution": "ISS-008 — Extract to config/strings.py constants module"
+    },
+    {
+      "id": "TD-006",
+      "debt_type": "Documentation Debt",
+      "description": "No type hints present anywhere. When functions are introduced, the absence of annotations prevents mypy static analysis and weakens IDE type inference for future maintainers.",
+      "impact": "LOW",
+      "estimated_fix_time_hours": 0.5,
+      "resolution": "ISS-009 — Add type annotations when extracting calculate()"
+    },
+    {
+      "id": "TD-007",
+      "debt_type": "Infrastructure Debt",
+      "description": "requirements.txt uses streamlit>=1.40.0 (open-ended). pip install on a fresh environment can install any future major version, including breaking changes or newly disclosed CVEs.",
+      "impact": "MEDIUM",
+      "estimated_fix_time_hours": 0.5,
+      "resolution": "ISS-004 — Pin to streamlit==1.41.0; add Dependabot"
+    },
+    {
+      "id": "TD-008",
+      "debt_type": "Code Debt",
+      "description": "Result f-string uses Python default float repr ({result}) while inputs use %.6f format. Produces visually inconsistent output (e.g. 0.30000000000000004 vs 0.300000) that appears to users as a calculation error.",
+      "impact": "LOW",
+      "estimated_fix_time_hours": 0.25,
+      "resolution": "ISS-003/ISS-010 — Apply :.6f format to result in f-string"
+    },
+    {
+      "id": "TD-009",
+      "debt_type": "Infrastructure Debt",
+      "description": "__pycache__/ is committed to the git repository. No .gitignore file exists. No .python-version file communicates the expected Python runtime version.",
+      "impact": "LOW",
+      "estimated_fix_time_hours": 0.25,
+      "resolution": "ISS-011 — Add .gitignore; run git rm -r --cached __pycache__/"
+    }
+  ],
+
+  "technical_debt_totals": {
+    "total_items": 9,
+    "total_estimated_fix_hours": 9.5,
+    "high_impact_items": 2,
+    "medium_impact_items": 4,
+    "low_impact_items": 3,
+    "breakdown_by_type": {
+      "Test Debt": { "items": 1, "hours": 3.0 },
+      "Design Debt": { "items": 1, "hours": 1.5 },
+      "Infrastructure Debt": { "items": 3, "hours": 2.75 },
+      "Code Debt": { "items": 3, "hours": 1.75 },
+      "Documentation Debt": { "items": 1, "hours": 0.5 }
+    }
+  },
+
+  "security_assessment": {
+    "overall_score": 84,
+    "findings": [
+      {
+        "concern": "SQL Injection",
+        "status": "N/A",
+        "notes": "No database; no SQL in this application"
+      },
+      {
+        "concern": "Cross-Site Scripting (XSS)",
+        "status": "N/A",
+        "notes": "Streamlit handles all HTML rendering internally; user inputs are never injected as raw HTML"
+      },
+      {
+        "concern": "Hardcoded Secrets",
+        "status": "CLEAN",
+        "notes": "No API keys, tokens, passwords, or credentials in any source file"
+      },
+      {
+        "concern": "Dependency Vulnerabilities",
+        "status": "MONITOR",
+        "notes": "streamlit>=1.40.0 open pin; run pip-audit on pinned version; add Dependabot for automated CVE alerts"
+      },
+      {
+        "concern": "Input Injection",
+        "status": "SAFE",
+        "notes": "st.number_input enforces numeric type; st.selectbox constrains to valid options; no user string passed to dangerous functions"
+      },
+      {
+        "concern": "Arbitrary Code Execution",
+        "status": "SAFE",
+        "notes": "No eval(), exec(), subprocess, os.system(), or __import__() calls"
+      },
+      {
+        "concern": "Pickle / Deserialization",
+        "status": "N/A",
+        "notes": "No serialization or deserialization of external data"
+      },
+      {
+        "concern": "Information Disclosure",
+        "status": "LOW RISK",
+        "notes": "Computation details expander exposes raw dict with operands and result — acceptable for a local calculator; would need review in a multi-tenant deployment"
+      }
+    ]
+  },
+
+  "dependency_analysis": {
+    "runtime_dependencies": [
+      {
+        "package": "streamlit",
+        "current_constraint": ">=1.40.0",
+        "risk_level": "MEDIUM",
+        "recommendation": "Pin to streamlit==1.41.0",
+        "reason": "Open-ended lower bound allows future major-version installs with breaking changes or CVEs",
+        "upgrade_path": [
+          "1. Pin: change requirements.txt to streamlit==1.41.0",
+          "2. Create requirements-dev.txt with dev tooling (pytest, black, flake8, mypy)",
+          "3. Add .github/dependabot.yml to auto-open PRs on new Streamlit releases",
+          "4. Gate version upgrades on full test suite green (ENH-002)"
+        ]
+      }
+    ],
+    "dev_dependencies_recommended": [
+      { "package": "pytest", "version": ">=8.0", "purpose": "Unit testing" },
+      { "package": "pytest-cov", "version": ">=5.0", "purpose": "Test coverage reporting" },
+      { "package": "black", "version": ">=24.0", "purpose": "Code formatting" },
+      { "package": "flake8", "version": ">=7.0", "purpose": "Linting" },
+      { "package": "mypy", "version": ">=1.8", "purpose": "Static type checking" }
+    ]
+  },
+
+  "business_rules_coverage": {
+    "total_rules": 7,
+    "rules_with_test_coverage": 0,
+    "rules_correctly_implemented": 7,
+    "rules": [
+      { "id": "BR-001", "name": "Division by Zero Prevention", "implemented": true, "tested": false, "issues": ["ISS-001"] },
+      { "id": "BR-002", "name": "Floating-Point Precision Standard", "implemented": true, "tested": false, "issues": ["ISS-003", "ISS-010"] },
+      { "id": "BR-003", "name": "Default Operation is Addition", "implemented": true, "tested": false, "issues": ["ISS-005"] },
+      { "id": "BR-004", "name": "Calculation Gated by Explicit Submission", "implemented": true, "tested": false, "issues": ["ISS-001"] },
+      { "id": "BR-005", "name": "Exactly Four Operations Supported", "implemented": true, "tested": false, "issues": ["ISS-005"] },
+      { "id": "BR-006", "name": "Result Displayed as Formatted Equation", "implemented": true, "tested": false, "issues": ["ISS-003"] },
+      { "id": "BR-007", "name": "Computation Details Available on Demand", "implemented": true, "tested": false, "issues": [] }
+    ]
+  },
+
+  "priority_action_plan": [
+    { "rank": 1, "action": "Extract calculate() into calculator_core.py", "ref": "ENH-001", "hours": 1.5, "impact": "Enables all testing; foundation for all other enhancements" },
+    { "rank": 2, "action": "Write pytest test suite", "ref": "ENH-002", "hours": 3.0, "impact": "Closes entire Test Debt; provides regression safety net" },
+    { "rank": 3, "action": "Pin dependencies + add GitHub Actions CI", "ref": "ENH-003", "hours": 2.0, "impact": "Reproducible builds; automated quality gates on every PR" },
+    { "rank": 4, "action": "Fix float result format to %.6f", "ref": "ISS-003", "hours": 0.5, "impact": "Eliminates 0.1+0.2=0.30000000000004 display bug" },
+    { "rank": 5, "action": "Replace implicit else with explicit elif + defensive else", "ref": "ISS-005", "hours": 0.5, "impact": "Future-safe operation routing; prevents silent wrong-branch bugs" },
+    { "rank": 6, "action": "Add calculation history with session_state", "ref": "ENH-004", "hours": 1.5, "impact": "Major UX improvement for multi-step calculations" },
+    { "rank": 7, "action": "Add numeric input range validation", "ref": "ENH-006", "hours": 1.0, "impact": "Prevents silent inf results; communicates numeric limits" },
+    { "rank": 8, "action": "Add .gitignore + .python-version", "ref": "ISS-011", "hours": 0.25, "impact": "Repository hygiene; prevents __pycache__ pollution" }
+  ],
+
+  "total_estimated_improvement_hours": 10.25
+}

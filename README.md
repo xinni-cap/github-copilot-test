@@ -18,7 +18,7 @@ Start the app with:
 
 Then open the local URL shown in the terminal (usually `http://localhost:8501`).
 
-## Test insights
+## Expected behavior
 
 - Add: `2` and `3` should return `5`
 - Subtract: `7` and `2` should return `5`

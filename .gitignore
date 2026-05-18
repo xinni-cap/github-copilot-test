@@ -1,1 +1,4 @@
 hook_tools_used.log
+
+__pycache__/
+*.pyc

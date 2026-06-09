@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class MockCalculatorApiServer {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -38,7 +39,15 @@ public class MockCalculatorApiServer {
 
     public void stop() {
         server.stop(0);
-        executorService.shutdownNow();
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException exception) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public String baseUri() {

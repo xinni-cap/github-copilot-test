@@ -1,9 +1,0 @@
-com/example/calculator/api/support/MockCalculatorApiServer.class
-com/example/calculator/api/support/TestContext.class
-com/example/calculator/api/support/ApiClient.class
-com/example/calculator/api/RunCucumberTest.class
-com/example/calculator/api/steps/CalculatorApiSteps.class
-com/example/calculator/api/support/MockCalculatorApiServer$CalculationRequest.class
-com/example/calculator/api/steps/Hooks.class
-com/example/calculator/api/support/TestDataBuilder.class
-com/example/calculator/api/support/MockCalculatorApiServer$DivisionByZeroException.class

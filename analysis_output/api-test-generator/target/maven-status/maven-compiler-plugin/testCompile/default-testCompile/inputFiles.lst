@@ -1,7 +1,0 @@
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/RunCucumberTest.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/steps/CalculatorApiSteps.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/steps/Hooks.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/support/ApiClient.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/support/MockCalculatorApiServer.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/support/TestContext.java
-/home/runner/work/github-copilot-test/github-copilot-test/analysis_output/api-test-generator/src/test/java/com/example/calculator/api/support/TestDataBuilder.java

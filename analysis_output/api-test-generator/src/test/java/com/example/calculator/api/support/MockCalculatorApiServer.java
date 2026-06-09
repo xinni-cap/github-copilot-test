@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MockCalculatorApiServer {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final int DIVISION_SCALE = 6;
 
     private final HttpServer server;
     private final ExecutorService executorService;
@@ -89,7 +90,7 @@ public class MockCalculatorApiServer {
         if (BigDecimal.ZERO.compareTo(secondNumber) == 0) {
             throw new DivisionByZeroException("Division by zero is not allowed.");
         }
-        return firstNumber.divide(secondNumber, 6, RoundingMode.HALF_UP).stripTrailingZeros();
+        return firstNumber.divide(secondNumber, DIVISION_SCALE, RoundingMode.HALF_UP).stripTrailingZeros();
     }
 
     private void writeJson(HttpExchange exchange, int statusCode, Map<String, ?> payload) throws IOException {

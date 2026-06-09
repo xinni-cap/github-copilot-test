@@ -4,7 +4,7 @@ import io.restassured.response.Response;
 import java.util.Map;
 
 public class TestContext {
-    private static MockCalculatorApiServer server;
+    private static volatile MockCalculatorApiServer server;
 
     private ApiClient apiClient;
     private Map<String, Object> request;

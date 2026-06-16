@@ -17,3 +17,9 @@ Start the app with:
 `streamlit run app.py`
 
 Then open the local URL shown in the terminal (usually `http://localhost:8501`).
+
+## Summit insights
+
+- Supports four operations: Add, Subtract, Multiply, and Divide.
+- Prevents division by zero and shows an error instead of crashing.
+- Shows a "Computation details" panel with input values, selected operation, and result.

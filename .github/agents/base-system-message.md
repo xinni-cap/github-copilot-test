@@ -142,7 +142,7 @@ models:
   - name: gpt-5
     provider: azure
     model: gpt-5
-    apiKey: 9m2nsTCOvji4EIlHTRBqLfSQv7Hf2GVuBYK2D38Srd6iAe3xIP6GJQQJ99BKACYeBjFXJ3w3AAABACOGGlqs
+    apiKey: ************************************************************************************
     apiBase: https://gendiscover-us.openai.azure.com/
     chatOptions:
       baseSystemMessage: >-

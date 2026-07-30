@@ -1,0 +1,8 @@
+target/
+*.class
+*.jar
+*.war
+.mvn/
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Calculator 🧮</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+            padding: 2rem 2.5rem;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+        .caption { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+        .row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .field { flex: 1; display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; color: #333; }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #4c6ef5;
+        }
+
+        .full-width { width: 100%; margin-bottom: 1rem; }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 0.7rem;
+            background: #4c6ef5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.25rem;
+        }
+        button[type="submit"]:hover { background: #3b5bdb; }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .result-box.success {
+            background: #d3f9d8;
+            border-left: 4px solid #2f9e44;
+            color: #1a6b2a;
+        }
+        .result-box.error {
+            background: #ffe3e3;
+            border-left: 4px solid #e03131;
+            color: #862e2e;
+        }
+        .result-box strong { font-size: 1.15rem; }
+
+        details { margin-top: 0.75rem; }
+        summary { cursor: pointer; font-size: 0.85rem; color: #555; }
+        pre {
+            margin-top: 0.5rem;
+            font-size: 0.82rem;
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🧮 Simple Calculator</h1>
+    <p class="caption">Perform quick arithmetic with a clean Spring Boot UI.</p>
+
+    <form action="/calculate" method="post" th:object="${request}">
+        <div class="row">
+            <div class="field">
+                <label for="num1">First number</label>
+                <input type="number" id="num1" th:field="*{num1}" step="any" required/>
+            </div>
+            <div class="field">
+                <label for="num2">Second number</label>
+                <input type="number" id="num2" th:field="*{num2}" step="any" required/>
+            </div>
+        </div>
+
+        <div class="full-width field">
+            <label for="operation">Operation</label>
+            <select id="operation" th:field="*{operation}">
+                <option value="Add">Add</option>
+                <option value="Subtract">Subtract</option>
+                <option value="Multiply">Multiply</option>
+                <option value="Divide">Divide</option>
+            </select>
+        </div>
+
+        <button type="submit">Calculate</button>
+    </form>
+
+    <!-- Result -->
+    <div th:if="${calcResult}" >
+        <div class="result-box error" th:if="${calcResult.hasError()}">
+            <strong>Error:</strong>
+            <span th:text="${calcResult.errorMessage}"></span>
+        </div>
+
+        <div class="result-box success" th:unless="${calcResult.hasError()}">
+            <strong>Result:</strong>
+            <span th:text="${calcResult.num1} + ' ' + ${calcResult.symbol} + ' ' + ${calcResult.num2} + ' = ' + ${calcResult.result}"></span>
+
+            <details>
+                <summary>Computation details</summary>
+                <pre th:text="'First number : ' + ${calcResult.num1}
++ '&#10;Second number: ' + ${calcResult.num2}
++ '&#10;Operation    : ' + ${calcResult.operation}
++ '&#10;Result       : ' + ${calcResult.result}"></pre>
+            </details>
+        </div>
+    </div>
+</div>
+</body>
+</html>

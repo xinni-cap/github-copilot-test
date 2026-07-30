@@ -1,0 +1,217 @@
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+:root {
+    --calc-bg: #f0f4ff;
+    --calc-card-bg: #ffffff;
+    --calc-primary: #4f46e5;
+    --calc-primary-hover: #4338ca;
+    --calc-result-bg: #f0fdf4;
+    --calc-result-border: #86efac;
+    --calc-result-value: #15803d;
+    --calc-shadow: 0 4px 24px rgba(79, 70, 229, 0.10);
+    --calc-radius: 1rem;
+}
+
+html, body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--calc-bg);
+    min-height: 100vh;
+    margin: 0;
+}
+
+a, .btn-link {
+    color: var(--calc-primary);
+}
+
+/* ── Focus ring ────────────────────────────────────────────────────────────── */
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+    outline: none;
+}
+
+/* ── Calculator wrapper ────────────────────────────────────────────────────── */
+.calculator-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 3rem 1rem 4rem;
+}
+
+.calculator-card {
+    background: var(--calc-card-bg);
+    border-radius: var(--calc-radius);
+    box-shadow: var(--calc-shadow);
+    width: 100%;
+    max-width: 520px;
+    overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+.calculator-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.75rem 2rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.calc-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.calculator-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1e1b4b;
+}
+
+.calculator-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.2rem 0 0;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────────────── */
+.calculator-body {
+    padding: 1.75rem 2rem 2rem;
+}
+
+/* ── Inputs ────────────────────────────────────────────────────────────────── */
+.form-label {
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+
+.form-control-lg,
+.form-select-lg {
+    border-color: #d1d5db;
+    border-radius: 0.5rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control-lg:hover,
+.form-select-lg:hover {
+    border-color: #a5b4fc;
+}
+
+/* ── Calculate button ──────────────────────────────────────────────────────── */
+.calculate-btn {
+    background-color: var(--calc-primary);
+    border-color: var(--calc-primary);
+    border-radius: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.calculate-btn:hover:not(:disabled) {
+    background-color: var(--calc-primary-hover);
+    border-color: var(--calc-primary-hover);
+    transform: translateY(-1px);
+}
+
+.calculate-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.calculate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ── Result card ───────────────────────────────────────────────────────────── */
+.result-card {
+    background: var(--calc-result-bg);
+    border: 1.5px solid var(--calc-result-border);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    animation: fadeSlideIn 0.25s ease;
+}
+
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #16a34a;
+    margin-bottom: 0.5rem;
+}
+
+.result-expression {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.result-symbol,
+.result-equals {
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.result-value {
+    color: var(--calc-result-value);
+    font-weight: 700;
+}
+
+/* ── Details table ─────────────────────────────────────────────────────────── */
+details summary {
+    user-select: none;
+}
+
+details summary::-webkit-details-marker {
+    color: #9ca3af;
+}
+
+/* ── Error boundary ────────────────────────────────────────────────────────── */
+.blazor-error-boundary {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    color: #b91c1c;
+    margin: 1rem 0;
+}
+
+.blazor-error-boundary::after {
+    content: "An unexpected error has occurred. Please refresh the page.";
+}
+
+/* ── Miscellaneous ─────────────────────────────────────────────────────────── */
+.content {
+    padding-top: 1.1rem;
+}
+
+h1:focus {
+    outline: none;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #16a34a;
+}
+
+.invalid {
+    outline: 1px solid #dc2626;
+}
+
+.validation-message {
+    color: #dc2626;
+}
+
+.darker-border-checkbox.form-check-input {
+    border-color: #929292;
+}

@@ -1,0 +1,167 @@
+@page "/"
+@rendermode InteractiveServer
+
+@using CalculatorApp.Services
+@inject ICalculatorService CalculatorService
+
+<PageTitle>Calculator 🧮</PageTitle>
+
+<div class="calculator-wrapper">
+    <div class="calculator-card shadow-sm">
+        <!-- Header -->
+        <div class="calculator-header">
+            <span class="calc-icon" aria-hidden="true">🧮</span>
+            <div>
+                <h1 class="calculator-title">Calculator</h1>
+                <p class="calculator-subtitle">Perform quick arithmetic with a clean Blazor UI.</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="calculator-body">
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label for="num1" class="form-label fw-semibold">First number</label>
+                    <input id="num1"
+                           type="number"
+                           step="any"
+                           class="form-control form-control-lg"
+                           placeholder="0"
+                           @bind="_firstNumber"
+                           @bind:event="oninput"
+                           aria-label="First number" />
+                </div>
+                <div class="col-sm-6">
+                    <label for="num2" class="form-label fw-semibold">Second number</label>
+                    <input id="num2"
+                           type="number"
+                           step="any"
+                           class="form-control form-control-lg"
+                           placeholder="0"
+                           @bind="_secondNumber"
+                           @bind:event="oninput"
+                           aria-label="Second number" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="operation" class="form-label fw-semibold">Operation</label>
+                <select id="operation"
+                        class="form-select form-select-lg"
+                        @bind="_selectedOperation"
+                        aria-label="Operation">
+                    @foreach (var op in Enum.GetValues<Operation>())
+                    {
+                        <option value="@op">@op.ToDisplayString()</option>
+                    }
+                </select>
+            </div>
+
+            <button class="btn btn-primary btn-lg w-100 calculate-btn"
+                    @onclick="CalculateAsync"
+                    disabled="@_isCalculating"
+                    aria-label="Calculate">
+                @if (_isCalculating)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Calculating&#8230;</span>
+                }
+                else
+                {
+                    <span>Calculate</span>
+                }
+            </button>
+
+            <!-- Error alert -->
+            @if (_errorMessage is not null)
+            {
+                <div class="alert alert-danger mt-4 d-flex align-items-center" role="alert">
+                    <strong class="me-2">Error:</strong>
+                    <span>@_errorMessage</span>
+                </div>
+            }
+
+            <!-- Result card -->
+            @if (_result is not null)
+            {
+                <div class="result-card mt-4">
+                    <div class="result-label">Result</div>
+                    <div class="result-expression">
+                        @FormatNumber(_result.FirstNumber)
+                        <span class="result-symbol">@_result.Symbol</span>
+                        @FormatNumber(_result.SecondNumber)
+                        <span class="result-equals">=</span>
+                        <span class="result-value">@FormatNumber(_result.Result)</span>
+                    </div>
+
+                    <!-- Computation details (collapsible) -->
+                    <details class="mt-3">
+                        <summary class="text-secondary small" style="cursor:pointer">Computation details</summary>
+                        <table class="table table-sm mt-2 mb-0">
+                            <tbody>
+                                <tr>
+                                    <th scope="row" class="text-muted fw-normal">First number</th>
+                                    <td class="text-end font-monospace">@_result.FirstNumber</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="text-muted fw-normal">Second number</th>
+                                    <td class="text-end font-monospace">@_result.SecondNumber</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="text-muted fw-normal">Operation</th>
+                                    <td class="text-end">@_result.Operation.ToDisplayString()</td>
+                                </tr>
+                                <tr class="table-active">
+                                    <th scope="row">Result</th>
+                                    <td class="text-end font-monospace fw-bold">@_result.Result</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </details>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private double _firstNumber;
+    private double _secondNumber;
+    private Operation _selectedOperation = Operation.Add;
+    private CalculationResult? _result;
+    private string? _errorMessage;
+    private bool _isCalculating;
+
+    private async Task CalculateAsync()
+    {
+        _isCalculating = true;
+        _errorMessage = null;
+        _result = null;
+
+        // Yield to let Blazor re-render the loading state before computing.
+        await Task.Yield();
+
+        try
+        {
+            var request = new CalculationRequest(_firstNumber, _secondNumber, _selectedOperation);
+            _result = CalculatorService.Calculate(request);
+        }
+        catch (DivideByZeroException)
+        {
+            _errorMessage = "Division by zero is not allowed.";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An unexpected error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isCalculating = false;
+        }
+    }
+
+    private static string FormatNumber(double value)
+        => value == Math.Truncate(value) && Math.Abs(value) < 1e15
+            ? value.ToString("G")
+            : value.ToString("G6");
+}

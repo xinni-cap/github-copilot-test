@@ -1,4 +1,5 @@
 import streamlit as st
+from calculator import calculate
 
 st.set_page_config(page_title="Calculator", page_icon="🧮", layout="centered")
 
@@ -22,21 +23,11 @@ with st.form("calculator_form"):
     submitted = st.form_submit_button("Calculate")
 
 if submitted:
-    if operation == "Add":
-        result = num1 + num2
-        symbol = "+"
-    elif operation == "Subtract":
-        result = num1 - num2
-        symbol = "-"
-    elif operation == "Multiply":
-        result = num1 * num2
-        symbol = "×"
-    else:
-        symbol = "÷"
-        if num2 == 0:
-            st.error("Division by zero is not allowed.")
-            st.stop()
-        result = num1 / num2
+    try:
+        result, symbol = calculate(num1, num2, operation)
+    except ValueError as e:
+        st.error(str(e))
+        st.stop()
 
     st.success(f"Result: {num1} {symbol} {num2} = {result}")
 

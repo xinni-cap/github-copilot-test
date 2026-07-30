@@ -1,0 +1,138 @@
+{
+  "application_summary": {
+    "name": "Streamlit Calculator App",
+    "purpose": "A single-page web application that lets users perform the four basic arithmetic operations (addition, subtraction, multiplication, division) through a clean browser-based UI built with Streamlit.",
+    "key_functionalities": [
+      "Accept two floating-point numbers from the user",
+      "Support Add, Subtract, Multiply, and Divide operations via a dropdown selector",
+      "Compute and display the arithmetic result on form submission",
+      "Guard against division-by-zero with a user-facing error message",
+      "Expose a collapsible expander section with structured computation details"
+    ],
+    "technical_stack": {
+      "language": "Python 3",
+      "framework": "Streamlit >= 1.40.0",
+      "runtime": "Browser (served via Streamlit dev server)",
+      "dependency_management": "pip / requirements.txt"
+    },
+    "architecture_pattern": "Single-file script, reactive Streamlit model (re-runs on every user interaction)",
+    "main_business_domains": ["Arithmetic Computation", "User Input Validation", "Result Presentation"]
+  },
+  "files": [
+    {
+      "file_path": "app.py",
+      "file_name": "app.py",
+      "language": "Python",
+      "category": "Mixed",
+      "summary": "Main entry-point for the Streamlit calculator: renders the UI form, executes arithmetic operations, enforces business rules (division-by-zero guard), and displays the result.",
+      "description": "app.py is the sole source file of the application and contains both the UI layout logic and the arithmetic business rules. It defines a two-column numeric input form, a dropdown for selecting the desired operation, and a submit button. On submission it evaluates the chosen operation against the two inputs, enforces the division-by-zero constraint, and renders the result together with a collapsible detail panel. The file follows Streamlit's reactive execution model where the entire script re-runs on every user interaction.",
+      "business_rules": [
+        "Division by zero is forbidden: when the Divide operation is selected and the second number equals zero, an error is shown and execution is halted immediately via st.stop().",
+        "Exactly four arithmetic operations are supported: Add, Subtract, Multiply, Divide.",
+        "The default selected operation is Add (index=0 in the selectbox).",
+        "Both number inputs default to 0.0 and accept up to six decimal places (format='%.6f').",
+        "Computation results are only produced and displayed after the form is explicitly submitted via the 'Calculate' button.",
+        "The result is presented in a human-readable expression format: '<num1> <symbol> <num2> = <result>'.",
+        "Computation details (first_number, second_number, operation, result) are available in a collapsible expander labelled 'Computation details'."
+      ],
+      "technical_libraries": ["Streamlit"],
+      "business_capability": "Arithmetic Computation",
+      "sub_capability": "Basic Four-Operation Calculator",
+      "method_breakdown": [
+        {
+          "method_name": "page_configuration_block",
+          "summary": "Configures the Streamlit page title, icon, and layout before any UI is rendered.",
+          "parameters": [],
+          "returns": "None – side-effect only (sets page metadata)",
+          "dependencies": ["streamlit.set_page_config"],
+          "significance": "Establishes the page identity (title 'Calculator', icon '🧮', centered layout) shown in the browser tab and controls the overall layout width."
+        },
+        {
+          "method_name": "header_block",
+          "summary": "Renders the application title and descriptive caption at the top of the page.",
+          "parameters": [],
+          "returns": "None – UI side-effect",
+          "dependencies": ["streamlit.title", "streamlit.caption"],
+          "significance": "Provides the user with context about the application's purpose."
+        },
+        {
+          "method_name": "calculator_form_block",
+          "summary": "Defines the interactive input form: two number inputs placed in side-by-side columns, an operation selector, and a submit button.",
+          "parameters": [
+            "num1 (float): First operand, defaults to 0.0, precision 6 decimal places",
+            "num2 (float): Second operand, defaults to 0.0, precision 6 decimal places",
+            "operation (str): One of 'Add', 'Subtract', 'Multiply', 'Divide'"
+          ],
+          "returns": "submitted (bool): True when the 'Calculate' button is clicked",
+          "dependencies": ["streamlit.form", "streamlit.columns", "streamlit.number_input", "streamlit.selectbox", "streamlit.form_submit_button"],
+          "significance": "Central UI component that captures all user inputs required to perform a calculation. Uses st.form to batch all widget state into a single submission event, preventing partial re-runs."
+        },
+        {
+          "method_name": "computation_block",
+          "summary": "Evaluates the selected arithmetic operation on the two input numbers and enforces the division-by-zero business rule.",
+          "parameters": [
+            "submitted (bool): Guard flag from form submission",
+            "operation (str): Selected operation string",
+            "num1 (float): First operand",
+            "num2 (float): Second operand"
+          ],
+          "returns": "result (float): Computed arithmetic result; execution is halted before this point if division by zero is detected",
+          "dependencies": ["streamlit.error", "streamlit.stop"],
+          "significance": "Implements all four arithmetic operations and enforces the critical division-by-zero constraint. Uses st.stop() to safely terminate script execution without a Python exception when the constraint is violated."
+        },
+        {
+          "method_name": "result_display_block",
+          "summary": "Renders a success banner with the arithmetic expression and result, plus a collapsible expander with structured computation metadata.",
+          "parameters": [
+            "num1 (float): First operand",
+            "num2 (float): Second operand",
+            "symbol (str): Unicode symbol corresponding to the operation ('+', '-', '×', '÷')",
+            "result (float): Computed result",
+            "operation (str): Operation name string"
+          ],
+          "returns": "None – UI side-effect",
+          "dependencies": ["streamlit.success", "streamlit.expander", "streamlit.write"],
+          "significance": "Closes the user feedback loop by presenting the result clearly and providing a drill-down detail view for transparency and debugging."
+        }
+      ]
+    },
+    {
+      "file_path": "requirements.txt",
+      "file_name": "requirements.txt",
+      "language": "Text (pip requirements)",
+      "category": "Technical",
+      "summary": "Declares the sole runtime dependency: Streamlit version 1.40.0 or higher.",
+      "description": "This file pins the minimum acceptable version of Streamlit required to run the application. It ensures reproducible installation across environments using 'pip install -r requirements.txt'. No transitive dependency pinning is performed; pip resolves sub-dependencies automatically.",
+      "business_rules": [],
+      "technical_libraries": ["streamlit>=1.40.0"],
+      "business_capability": "Dependency Management",
+      "sub_capability": "Runtime Dependency Declaration",
+      "method_breakdown": []
+    },
+    {
+      "file_path": "README.md",
+      "file_name": "README.md",
+      "language": "Markdown",
+      "category": "Technical",
+      "summary": "Setup and run instructions for the Streamlit Calculator App.",
+      "description": "The README provides the minimum information a developer needs to get the application running locally: how to create and activate a Python virtual environment, how to install dependencies, and how to launch the Streamlit development server.",
+      "business_rules": [],
+      "technical_libraries": [],
+      "business_capability": "Developer Onboarding",
+      "sub_capability": "Local Setup Guide",
+      "method_breakdown": []
+    }
+  ],
+  "package_summary": {
+    "structure": "Flat single-package application (no sub-modules or packages)",
+    "packages": [
+      {
+        "name": "root",
+        "path": "/",
+        "responsibilities": ["Application entry point", "UI rendering", "Business logic execution"],
+        "key_files": ["app.py"],
+        "dependencies": ["streamlit"]
+      }
+    ]
+  }
+}

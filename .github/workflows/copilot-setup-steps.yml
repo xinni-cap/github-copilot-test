@@ -22,3 +22,8 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
+      - name: Setup Java 21 (LTS)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"

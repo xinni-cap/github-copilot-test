@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Simple Calculator</title>
+    <!-- Bootstrap 5 CDN -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .calculator-card {
+            max-width: 560px;
+            margin: 60px auto;
+        }
+        .details-label {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="calculator-card card shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="card-title mb-4 text-center">🧮 Simple Calculator</h2>
+
+            <!-- Calculator Form -->
+            <form th:action="@{/}" th:object="${calculatorRequest}" method="post" novalidate>
+
+                <!-- First Number -->
+                <div class="mb-3">
+                    <label for="num1" class="form-label fw-semibold">First Number</label>
+                    <input type="number"
+                           id="num1"
+                           th:field="*{num1}"
+                           class="form-control"
+                           th:classappend="${#fields.hasErrors('num1')} ? 'is-invalid'"
+                           step="0.000001"
+                           placeholder="Enter first number"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('num1')}"
+                         th:errors="*{num1}">First number error</div>
+                </div>
+
+                <!-- Second Number -->
+                <div class="mb-3">
+                    <label for="num2" class="form-label fw-semibold">Second Number</label>
+                    <input type="number"
+                           id="num2"
+                           th:field="*{num2}"
+                           class="form-control"
+                           th:classappend="${#fields.hasErrors('num2')} ? 'is-invalid'"
+                           step="0.000001"
+                           placeholder="Enter second number"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('num2')}"
+                         th:errors="*{num2}">Second number error</div>
+                </div>
+
+                <!-- Operation -->
+                <div class="mb-4">
+                    <label for="operation" class="form-label fw-semibold">Operation</label>
+                    <select id="operation"
+                            th:field="*{operation}"
+                            class="form-select"
+                            th:classappend="${#fields.hasErrors('operation')} ? 'is-invalid'">
+                        <option value="">-- Select operation --</option>
+                        <option value="Add">Add (+)</option>
+                        <option value="Subtract">Subtract (-)</option>
+                        <option value="Multiply">Multiply (×)</option>
+                        <option value="Divide">Divide (÷)</option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('operation')}"
+                         th:errors="*{operation}">Operation error</div>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
+                </div>
+            </form>
+
+            <!-- Success Result -->
+            <div th:if="${result}" class="mt-4">
+                <div class="alert alert-success" role="alert">
+                    <h5 class="alert-heading">✅ Result</h5>
+                    <p class="fs-5 mb-0" th:text="${result.expression}">expression</p>
+                </div>
+
+                <!-- Computation Details (collapsible) -->
+                <div class="accordion mt-3" id="detailsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="detailsHeading">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#detailsCollapse"
+                                    aria-expanded="false" aria-controls="detailsCollapse">
+                                Computation Details
+                            </button>
+                        </h2>
+                        <div id="detailsCollapse" class="accordion-collapse collapse"
+                             aria-labelledby="detailsHeading" data-bs-parent="#detailsAccordion">
+                            <div class="accordion-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-5 details-label">First Number</dt>
+                                    <dd class="col-sm-7" th:text="${result.num1}">0</dd>
+
+                                    <dt class="col-sm-5 details-label">Second Number</dt>
+                                    <dd class="col-sm-7" th:text="${result.num2}">0</dd>
+
+                                    <dt class="col-sm-5 details-label">Operation</dt>
+                                    <dd class="col-sm-7" th:text="${result.operation}">op</dd>
+
+                                    <dt class="col-sm-5 details-label">Result</dt>
+                                    <dd class="col-sm-7" th:text="${result.result}">0</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${errorMessage}" class="alert alert-danger mt-4" role="alert">
+                <h5 class="alert-heading">❌ Error</h5>
+                <p class="mb-0" th:text="${errorMessage}">error</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS (includes Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmPZ6GRTVTnqmKv3kJH6yqaSqwDZ"
+        crossorigin="anonymous"></script>
+</body>
+</html>

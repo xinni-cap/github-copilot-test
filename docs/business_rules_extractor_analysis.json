@@ -1,0 +1,138 @@
+{
+  "project": "Simple Calculator - Streamlit App",
+  "extraction_date": "2025-07-14",
+  "source_file": "app.py",
+  "business_rules": [
+    {
+      "id": "BR-001",
+      "name": "Supported Arithmetic Operations",
+      "description": "The calculator supports exactly four arithmetic operations: Addition, Subtraction, Multiplication, and Division",
+      "rule_type": "functional",
+      "priority": "critical",
+      "source_lines": "16-20",
+      "code_snippet": "operation = st.selectbox('Operation', ('Add', 'Subtract', 'Multiply', 'Divide'), index=0)",
+      "validation": "Enforced by UI selectbox - only predefined options available",
+      "operations": {
+        "Add": {"symbol": "+", "python_operator": "+", "formula": "result = num1 + num2"},
+        "Subtract": {"symbol": "-", "python_operator": "-", "formula": "result = num1 - num2"},
+        "Multiply": {"symbol": "×", "python_operator": "*", "formula": "result = num1 * num2"},
+        "Divide": {"symbol": "÷", "python_operator": "/", "formula": "result = num1 / num2"}
+      }
+    },
+    {
+      "id": "BR-002",
+      "name": "Division by Zero Prohibition",
+      "description": "Division operation with second number equal to zero is not permitted. The application displays an error and halts execution.",
+      "rule_type": "constraint",
+      "priority": "critical",
+      "source_lines": "36-38",
+      "code_snippet": "if num2 == 0:\n    st.error('Division by zero is not allowed.')\n    st.stop()",
+      "error_message": "Division by zero is not allowed.",
+      "enforcement": "Explicit guard clause with st.stop() to halt script execution",
+      "edge_cases": ["num2 = 0.0", "num2 = -0.0", "num2 = 0"],
+      "recovery": "User must enter a non-zero second number and resubmit form"
+    },
+    {
+      "id": "BR-003",
+      "name": "Numeric Input Precision",
+      "description": "Both numeric inputs accept floating-point numbers displayed to 6 decimal places",
+      "rule_type": "data",
+      "priority": "high",
+      "source_lines": "12-14",
+      "code_snippet": "num1 = st.number_input('First number', value=0.0, format='%.6f')\nnum2 = st.number_input('Second number', value=0.0, format='%.6f')",
+      "default_value": 0.0,
+      "display_format": "%.6f (6 decimal places)",
+      "data_type": "Python float (IEEE 754 double-precision)",
+      "range": "No explicit min/max constraints - full float range"
+    },
+    {
+      "id": "BR-004",
+      "name": "Form Submission Triggers Calculation",
+      "description": "Calculation only executes when the user explicitly clicks the 'Calculate' submit button. Changing inputs does not trigger recalculation.",
+      "rule_type": "behavioral",
+      "priority": "high",
+      "source_lines": "8, 22, 24",
+      "code_snippet": "with st.form('calculator_form'):\n    ...\n    submitted = st.form_submit_button('Calculate')\nif submitted:",
+      "pattern": "st.form batches all inputs - prevents reactive per-keystroke re-runs",
+      "trigger": "Explicit button click only"
+    },
+    {
+      "id": "BR-005",
+      "name": "Result Display Format",
+      "description": "Successful calculation results are displayed in the format: '{num1} {symbol} {num2} = {result}'",
+      "rule_type": "presentation",
+      "priority": "medium",
+      "source_lines": "41",
+      "code_snippet": "st.success(f'Result: {num1} {symbol} {num2} = {result}')",
+      "format_template": "Result: {first_number} {operation_symbol} {second_number} = {computed_result}",
+      "display_type": "Green success banner (st.success)",
+      "symbols": {
+        "Add": "+",
+        "Subtract": "-",
+        "Multiply": "×",
+        "Divide": "÷"
+      }
+    },
+    {
+      "id": "BR-006",
+      "name": "Computation Details Availability",
+      "description": "After each successful calculation, a collapsible panel provides a structured breakdown of all computation parameters",
+      "rule_type": "presentation",
+      "priority": "low",
+      "source_lines": "43-49",
+      "code_snippet": "with st.expander('Computation details'):\n    st.write({'first_number': num1, 'second_number': num2, 'operation': operation, 'result': result})",
+      "expander_label": "Computation details",
+      "detail_fields": ["first_number", "second_number", "operation", "result"],
+      "default_state": "Collapsed"
+    },
+    {
+      "id": "BR-007",
+      "name": "Stateless Operation",
+      "description": "The application maintains no state between sessions or between calculations. Each calculation is independent with no history.",
+      "rule_type": "constraint",
+      "priority": "medium",
+      "enforcement": "No st.session_state usage; Streamlit re-runs entire script on each interaction",
+      "implication": "Users cannot reference previous calculation results"
+    },
+    {
+      "id": "BR-008",
+      "name": "Default Input Values",
+      "description": "Both number inputs default to 0.0 on page load and after each re-render",
+      "rule_type": "initialization",
+      "priority": "low",
+      "source_lines": "12-14",
+      "default_num1": 0.0,
+      "default_num2": 0.0,
+      "default_operation": "Add (index=0)"
+    },
+    {
+      "id": "BR-009",
+      "name": "Page Configuration",
+      "description": "The browser tab displays 'Calculator' as page title with a calculator emoji icon. The layout is centered.",
+      "rule_type": "presentation",
+      "priority": "low",
+      "source_lines": "3",
+      "page_title": "Calculator",
+      "page_icon": "🧮",
+      "layout": "centered"
+    }
+  ],
+  "summary": {
+    "total_rules": 9,
+    "by_type": {
+      "functional": 1,
+      "constraint": 2,
+      "data": 1,
+      "behavioral": 1,
+      "presentation": 3,
+      "initialization": 1
+    },
+    "by_priority": {
+      "critical": 2,
+      "high": 2,
+      "medium": 2,
+      "low": 3
+    },
+    "key_constraint": "Division by zero is the only input validation rule enforced by the application"
+  }
+}

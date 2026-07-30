@@ -2,6 +2,8 @@
 
 A simple calculator web app built with Streamlit.
 
+It includes a lightweight insight message that classifies each computed result as positive, negative, or zero.
+
 ## Setup
 
 1. Create and activate a virtual environment (optional but recommended):

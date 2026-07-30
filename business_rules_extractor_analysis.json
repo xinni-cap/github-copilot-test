@@ -1,0 +1,523 @@
+{
+  "application": "Streamlit Calculator App",
+  "version": "1.0.0",
+  "extraction_scope": [
+    "app.py"
+  ],
+  "extraction_summary": {
+    "total_business_rules": 7,
+    "total_decision_branches": 5,
+    "total_workflows": 2,
+    "total_validation_rules": 3,
+    "total_error_conditions": 1,
+    "total_user_interaction_flows": 1
+  },
+  "business_rules": [
+    {
+      "rule_id": "BR-001",
+      "name": "Division by Zero Prevention",
+      "category": "Validation",
+      "priority": "Critical",
+      "source_file": "app.py",
+      "source_lines": "36-38",
+      "description": "When the selected operation is Divide, the divisor (num2) must not equal zero. If it does, the operation is rejected with an error message and execution is halted.",
+      "condition": "operation == 'Divide' AND num2 == 0",
+      "action": "Display error banner and halt script execution",
+      "enforcement_mechanism": "if num2 == 0: st.error(...); st.stop()",
+      "rationale": "Division by zero is mathematically undefined; allowing it would raise a ZeroDivisionError and crash the application"
+    },
+    {
+      "rule_id": "BR-002",
+      "name": "Floating-Point Precision Standard",
+      "category": "Data Quality",
+      "priority": "Medium",
+      "source_file": "app.py",
+      "source_lines": "12,14",
+      "description": "All numeric inputs and outputs are handled as floating-point numbers with up to 6 decimal places of precision, ensuring consistency across all four operations.",
+      "condition": "Always applied at input collection",
+      "action": "format='%.6f' applied to both st.number_input widgets",
+      "enforcement_mechanism": "st.number_input(format='%.6f')",
+      "rationale": "Ensures sub-integer values are correctly captured and displayed without silent truncation"
+    },
+    {
+      "rule_id": "BR-003",
+      "name": "Default Operation is Addition",
+      "category": "UX Default",
+      "priority": "Low",
+      "source_file": "app.py",
+      "source_lines": "16-20",
+      "description": "When the application first loads, the operation selector defaults to 'Add' (index 0), providing a predictable starting state for users.",
+      "condition": "Application initial load or reset",
+      "action": "selectbox index=0 pre-selects 'Add'",
+      "enforcement_mechanism": "st.selectbox('Operation', ('Add','Subtract','Multiply','Divide'), index=0)",
+      "rationale": "Addition is the most common and safest default operation; it avoids accidental division-by-zero on first interaction"
+    },
+    {
+      "rule_id": "BR-004",
+      "name": "Calculation Gated by Explicit Submission",
+      "category": "Interaction Control",
+      "priority": "High",
+      "source_file": "app.py",
+      "source_lines": "22,24",
+      "description": "The arithmetic computation block executes only after the user explicitly clicks the 'Calculate' button. Changing inputs does not trigger a recalculation.",
+      "condition": "submitted == True",
+      "action": "Execute computation and render result",
+      "enforcement_mechanism": "st.form + st.form_submit_button; if submitted: block",
+      "rationale": "Prevents partial or unintended calculations during input editing, improving UX reliability"
+    },
+    {
+      "rule_id": "BR-005",
+      "name": "Exactly Four Operations Supported",
+      "category": "Feature Scope",
+      "priority": "High",
+      "source_file": "app.py",
+      "source_lines": "16-20,25-39",
+      "description": "The application supports exactly four arithmetic operations: Addition, Subtraction, Multiplication, and Division. No other operations (e.g., modulo, exponentiation) are available.",
+      "condition": "Always",
+      "action": "Constrained by selectbox options tuple",
+      "enforcement_mechanism": "options=('Add','Subtract','Multiply','Divide')",
+      "rationale": "Keeps the application simple and focused on basic four-function arithmetic"
+    },
+    {
+      "rule_id": "BR-006",
+      "name": "Result Displayed as Formatted Equation",
+      "category": "Output Presentation",
+      "priority": "Medium",
+      "source_file": "app.py",
+      "source_lines": "41",
+      "description": "The computed result is always displayed as a human-readable equation in the format 'num1 SYMBOL num2 = result', making the calculation transparent to the user.",
+      "condition": "Successful computation (submitted == True AND no error)",
+      "action": "Render f-string equation in st.success banner",
+      "enforcement_mechanism": "st.success(f'Result: {num1} {symbol} {num2} = {result}')",
+      "rationale": "Confirms the exact inputs used in the calculation, preventing confusion if inputs were misread"
+    },
+    {
+      "rule_id": "BR-007",
+      "name": "Computation Details Available on Demand",
+      "category": "Transparency",
+      "priority": "Low",
+      "source_file": "app.py",
+      "source_lines": "43-49",
+      "description": "After a successful calculation, the raw computation data dictionary (operands, operation name, result) is available in a collapsible expander panel, but is hidden by default to keep the UI clean.",
+      "condition": "Successful computation",
+      "action": "Render dict in collapsible st.expander",
+      "enforcement_mechanism": "st.expander('Computation details') + st.write({...})",
+      "rationale": "Supports power users and debugging without cluttering the primary result view"
+    }
+  ],
+  "decision_logic": [
+    {
+      "decision_id": "DL-001",
+      "name": "Operation Routing",
+      "source_file": "app.py",
+      "source_lines": "25-39",
+      "type": "if/elif/else chain",
+      "description": "A four-branch conditional routes the submitted operation string to the corresponding arithmetic expression and assigns the appropriate display symbol.",
+      "branches": [
+        {
+          "condition": "operation == 'Add'",
+          "action": "result = num1 + num2; symbol = '+'",
+          "outcome": "Addition result computed"
+        },
+        {
+          "condition": "operation == 'Subtract'",
+          "action": "result = num1 - num2; symbol = '-'",
+          "outcome": "Subtraction result computed"
+        },
+        {
+          "condition": "operation == 'Multiply'",
+          "action": "result = num1 * num2; symbol = '\u00d7'",
+          "outcome": "Multiplication result computed"
+        },
+        {
+          "condition": "else (operation == 'Divide')",
+          "action": "symbol = '\u00f7'; guard check; result = num1 / num2",
+          "outcome": "Division result computed or error raised"
+        }
+      ],
+      "default_branch": "Divide (else clause) \u2014 relies on the selectbox constraining input to valid values only"
+    },
+    {
+      "decision_id": "DL-002",
+      "name": "Division-by-Zero Guard",
+      "source_file": "app.py",
+      "source_lines": "36-38",
+      "type": "if with early exit",
+      "description": "Nested inside the Divide branch, this guard checks the divisor before the division is attempted. On failure it displays an error and halts execution.",
+      "branches": [
+        {
+          "condition": "num2 == 0",
+          "action": "st.error('Division by zero is not allowed.'); st.stop()",
+          "outcome": "Script halted; result never assigned"
+        },
+        {
+          "condition": "num2 != 0",
+          "action": "result = num1 / num2",
+          "outcome": "Valid division result computed"
+        }
+      ]
+    },
+    {
+      "decision_id": "DL-003",
+      "name": "Submission Gate",
+      "source_file": "app.py",
+      "source_lines": "24",
+      "type": "Top-level if gate",
+      "description": "Guards the entire computation and display block; nothing executes unless the form has been explicitly submitted in the current re-run.",
+      "branches": [
+        {
+          "condition": "submitted == True",
+          "action": "Enter computation and display block",
+          "outcome": "Result rendered"
+        },
+        {
+          "condition": "submitted == False (default on load)",
+          "action": "Skip computation block entirely",
+          "outcome": "Blank result area; form visible only"
+        }
+      ]
+    }
+  ],
+  "calculation_workflows": [
+    {
+      "workflow_id": "WF-001",
+      "name": "Addition Workflow",
+      "trigger": "User selects 'Add' and clicks Calculate",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Collect num1 and num2 from form inputs"
+        },
+        {
+          "step": 2,
+          "action": "Detect operation == 'Add'"
+        },
+        {
+          "step": 3,
+          "action": "Compute result = num1 + num2"
+        },
+        {
+          "step": 4,
+          "action": "Set symbol = '+'"
+        },
+        {
+          "step": 5,
+          "action": "Display st.success with formatted equation"
+        },
+        {
+          "step": 6,
+          "action": "Render computation details in expander"
+        }
+      ],
+      "formula": "result = num1 + num2",
+      "symbol": "+"
+    },
+    {
+      "workflow_id": "WF-002",
+      "name": "Subtraction Workflow",
+      "trigger": "User selects 'Subtract' and clicks Calculate",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Collect num1 and num2 from form inputs"
+        },
+        {
+          "step": 2,
+          "action": "Detect operation == 'Subtract'"
+        },
+        {
+          "step": 3,
+          "action": "Compute result = num1 - num2"
+        },
+        {
+          "step": 4,
+          "action": "Set symbol = '-'"
+        },
+        {
+          "step": 5,
+          "action": "Display st.success with formatted equation"
+        },
+        {
+          "step": 6,
+          "action": "Render computation details in expander"
+        }
+      ],
+      "formula": "result = num1 - num2",
+      "symbol": "-"
+    },
+    {
+      "workflow_id": "WF-003",
+      "name": "Multiplication Workflow",
+      "trigger": "User selects 'Multiply' and clicks Calculate",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Collect num1 and num2 from form inputs"
+        },
+        {
+          "step": 2,
+          "action": "Detect operation == 'Multiply'"
+        },
+        {
+          "step": 3,
+          "action": "Compute result = num1 * num2"
+        },
+        {
+          "step": 4,
+          "action": "Set symbol = '\u00d7'"
+        },
+        {
+          "step": 5,
+          "action": "Display st.success with formatted equation"
+        },
+        {
+          "step": 6,
+          "action": "Render computation details in expander"
+        }
+      ],
+      "formula": "result = num1 * num2",
+      "symbol": "\u00d7"
+    },
+    {
+      "workflow_id": "WF-004",
+      "name": "Division Workflow (Happy Path)",
+      "trigger": "User selects 'Divide', sets num2 != 0, and clicks Calculate",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Collect num1 and num2 from form inputs"
+        },
+        {
+          "step": 2,
+          "action": "Detect operation == 'Divide' (else branch)"
+        },
+        {
+          "step": 3,
+          "action": "Set symbol = '\u00f7'"
+        },
+        {
+          "step": 4,
+          "action": "Check num2 != 0 \u2014 guard passes"
+        },
+        {
+          "step": 5,
+          "action": "Compute result = num1 / num2"
+        },
+        {
+          "step": 6,
+          "action": "Display st.success with formatted equation"
+        },
+        {
+          "step": 7,
+          "action": "Render computation details in expander"
+        }
+      ],
+      "formula": "result = num1 / num2",
+      "symbol": "\u00f7"
+    },
+    {
+      "workflow_id": "WF-005",
+      "name": "Division by Zero Error Workflow",
+      "trigger": "User selects 'Divide', sets num2 = 0, and clicks Calculate",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Collect num1 and num2 from form inputs"
+        },
+        {
+          "step": 2,
+          "action": "Detect operation == 'Divide' (else branch)"
+        },
+        {
+          "step": 3,
+          "action": "Set symbol = '\u00f7'"
+        },
+        {
+          "step": 4,
+          "action": "Check num2 == 0 \u2014 guard FAILS"
+        },
+        {
+          "step": 5,
+          "action": "Call st.error('Division by zero is not allowed.')"
+        },
+        {
+          "step": 6,
+          "action": "Call st.stop() \u2014 script halts immediately"
+        },
+        {
+          "step": 7,
+          "action": "result is never assigned; success banner never rendered"
+        }
+      ],
+      "formula": "N/A \u2014 operation rejected",
+      "outcome": "Error state; no result produced"
+    }
+  ],
+  "user_interaction_flows": [
+    {
+      "flow_id": "UIF-001",
+      "name": "Standard Calculator Interaction",
+      "description": "Complete user journey from page load to result display",
+      "steps": [
+        {
+          "step": 1,
+          "user_action": "Opens application in browser",
+          "system_response": "Streamlit renders page with title, caption, and blank form"
+        },
+        {
+          "step": 2,
+          "user_action": "Enters a value in the 'First number' input",
+          "system_response": "Form field updates; no recalculation triggered (form batching)"
+        },
+        {
+          "step": 3,
+          "user_action": "Enters a value in the 'Second number' input",
+          "system_response": "Form field updates; no recalculation triggered"
+        },
+        {
+          "step": 4,
+          "user_action": "Selects an operation from the dropdown",
+          "system_response": "Dropdown reflects selection; no recalculation triggered"
+        },
+        {
+          "step": 5,
+          "user_action": "Clicks 'Calculate' button",
+          "system_response": "Form submits; Streamlit re-runs script with submitted=True"
+        },
+        {
+          "step": 6,
+          "user_action": "Reads result in green success banner",
+          "system_response": "Formatted equation displayed: num1 SYMBOL num2 = result"
+        },
+        {
+          "step": 7,
+          "user_action": "(Optional) Clicks 'Computation details' expander",
+          "system_response": "Collapsible panel opens showing raw dict with all four fields"
+        },
+        {
+          "step": 8,
+          "user_action": "Modifies any input and clicks 'Calculate' again",
+          "system_response": "New calculation replaces previous result"
+        }
+      ],
+      "error_path": {
+        "trigger": "User selects Divide with second number = 0 and clicks Calculate",
+        "response": "Red error banner shown; no result displayed; expander not shown"
+      }
+    }
+  ],
+  "data_validation_rules": [
+    {
+      "rule_id": "VR-001",
+      "name": "Divisor Non-Zero Constraint",
+      "field": "num2",
+      "applies_when": "operation == 'Divide'",
+      "constraint": "num2 != 0",
+      "violation_response": "st.error message + st.stop()",
+      "type": "Domain constraint"
+    },
+    {
+      "rule_id": "VR-002",
+      "name": "Operation Must Be One of Four Valid Values",
+      "field": "operation",
+      "applies_when": "Always",
+      "constraint": "operation in ('Add', 'Subtract', 'Multiply', 'Divide')",
+      "violation_response": "Not applicable \u2014 constrained by selectbox widget, no invalid value can be entered",
+      "type": "Enumeration constraint (UI-enforced)"
+    },
+    {
+      "rule_id": "VR-003",
+      "name": "Numeric Input Type Constraint",
+      "fields": [
+        "num1",
+        "num2"
+      ],
+      "applies_when": "Always",
+      "constraint": "Both inputs must be valid floating-point numbers",
+      "violation_response": "Streamlit number_input widget rejects non-numeric keyboard input natively",
+      "type": "Type constraint (UI-enforced)"
+    }
+  ],
+  "error_conditions": [
+    {
+      "error_id": "EC-001",
+      "name": "Division by Zero",
+      "source_file": "app.py",
+      "source_lines": "36-38",
+      "trigger_condition": "operation == 'Divide' AND num2 == 0",
+      "error_type": "Business rule violation",
+      "user_visible_message": "Division by zero is not allowed.",
+      "display_component": "st.error",
+      "recovery_mechanism": "st.stop() halts execution; user must correct num2 and resubmit",
+      "technical_detail": "st.stop() raises a Streamlit StopException internally, preventing further script execution and avoiding a NameError caused by result being undefined",
+      "side_effects": [
+        "result variable is never assigned",
+        "st.success banner is never rendered",
+        "st.expander block is never reached"
+      ]
+    }
+  ],
+  "field_catalog": [
+    {
+      "field_name": "num1",
+      "label": "First number",
+      "type": "float",
+      "default": 0.0,
+      "format": "%.6f",
+      "widget": "st.number_input",
+      "role": "First operand (minuend for subtraction, dividend for division)",
+      "scope": "Form input + computation + result display"
+    },
+    {
+      "field_name": "num2",
+      "label": "Second number",
+      "type": "float",
+      "default": 0.0,
+      "format": "%.6f",
+      "widget": "st.number_input",
+      "role": "Second operand (subtrahend for subtraction, divisor for division)",
+      "scope": "Form input + computation + result display",
+      "critical_constraint": "Must not be zero when operation is Divide"
+    },
+    {
+      "field_name": "operation",
+      "label": "Operation",
+      "type": "string",
+      "widget": "st.selectbox",
+      "allowed_values": [
+        "Add",
+        "Subtract",
+        "Multiply",
+        "Divide"
+      ],
+      "default": "Add",
+      "role": "Selects which arithmetic operation to perform",
+      "scope": "Form input + computation routing"
+    },
+    {
+      "field_name": "submitted",
+      "type": "boolean",
+      "widget": "st.form_submit_button",
+      "role": "Gate controlling whether the computation block executes",
+      "scope": "Post-form submission gate"
+    },
+    {
+      "field_name": "result",
+      "type": "float",
+      "role": "Computed arithmetic result",
+      "scope": "Computation output + success banner + expander"
+    },
+    {
+      "field_name": "symbol",
+      "type": "string",
+      "allowed_values": [
+        "+",
+        "-",
+        "\u00d7",
+        "\u00f7"
+      ],
+      "role": "Human-readable operator symbol used in the result equation display",
+      "scope": "Computation + result display"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+2025-01-01T00:00:00Z | bpmn-generator | created | bpmn_process.md | BPMN 2.0 process model for Streamlit Calculator — 4 Mermaid diagrams, 7 sections, full swimlane/element/metric/rule coverage
+2025-01-31T00:00:00Z | ddl-generator | created | database_schema.sql | PostgreSQL DDL — 3 tables (operations, sessions, calculations), 8 indexes, 6 CHECK constraints, 2 FK constraints, 2 views, 1 trigger, 4 seed rows
+2025-01-31T00:00:00Z | ddl-generator | created | data_model.md | Data model design doc — Mermaid ER diagram, table descriptions, constraint mapping, business rule traceability, schema statistics

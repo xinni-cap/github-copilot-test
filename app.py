@@ -1,9 +1,9 @@
 import streamlit as st
 
-st.set_page_config(page_title="Calculator", page_icon="🧮", layout="centered")
+st.set_page_config(page_title="Summit Insights", page_icon="🧮", layout="centered")
 
-st.title("Simple Calculator")
-st.caption("Perform quick arithmetic with a clean Streamlit UI.")
+st.title("Summit Insights")
+st.caption("Perform quick arithmetic and review calculation insights.")
 
 with st.form("calculator_form"):
     col1, col2 = st.columns(2)
@@ -40,7 +40,7 @@ if submitted:
 
     st.success(f"Result: {num1} {symbol} {num2} = {result}")
 
-    with st.expander("Computation details"):
+    with st.expander("Summit insights"):
         st.write({
             "first_number": num1,
             "second_number": num2,

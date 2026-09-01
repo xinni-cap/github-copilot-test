@@ -1,6 +1,6 @@
-# Streamlit Calculator App
+# Summit Insights
 
-A simple calculator web app built with Streamlit.
+A simple calculator web app built with Streamlit that highlights calculation insights.
 
 ## Setup
 

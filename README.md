@@ -17,3 +17,11 @@ Start the app with:
 `streamlit run app.py`
 
 Then open the local URL shown in the terminal (usually `http://localhost:8501`).
+
+## Expected behavior
+
+- Add: `2` and `3` should return `5`
+- Subtract: `7` and `2` should return `5`
+- Multiply: `4` and `2.5` should return `10`
+- Divide: `9` and `3` should return `3`
+- Divide by zero should show `Division by zero is not allowed.`
